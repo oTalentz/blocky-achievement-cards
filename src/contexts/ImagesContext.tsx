@@ -1,6 +1,8 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from "sonner";
+import { supabase } from "../integrations/supabase/client";
+import { v4 as uuidv4 } from 'uuid';
 
 export type ImageItem = {
   id: string;
@@ -13,7 +15,7 @@ export type ImageItem = {
 type ImagesContextType = {
   images: ImageItem[];
   addImage: (imageFile: File) => Promise<void>;
-  deleteImage: (id: string) => void;
+  deleteImage: (id: string) => Promise<void>;
   isUploading: boolean;
 };
 
@@ -24,34 +26,33 @@ export const ImagesProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
-    // Load images from localStorage or use empty array
-    const savedImages = localStorage.getItem('images');
-    if (savedImages) {
+    // Fetch images from Supabase
+    const fetchImages = async () => {
       try {
-        setImages(JSON.parse(savedImages));
+        const { data, error } = await supabase
+          .from('gallery_images')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error("Error fetching images:", error);
+          return;
+        }
+
+        setImages(data.map(img => ({
+          id: img.id,
+          name: img.name,
+          url: img.url,
+          createdAt: img.created_at,
+          size: img.size || 0
+        })));
       } catch (error) {
-        console.error("Error parsing images from localStorage:", error);
-        setImages([]);
+        console.error("Error in fetchImages:", error);
       }
-    }
+    };
+
+    fetchImages();
   }, []);
-
-  // Save to localStorage whenever images change
-  useEffect(() => {
-    if (images) {
-      localStorage.setItem('images', JSON.stringify(images));
-    }
-  }, [images]);
-
-  // Convert File to base64 string
-  const fileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = error => reject(error);
-    });
-  };
 
   const addImage = async (imageFile: File) => {
     try {
@@ -63,20 +64,57 @@ export const ImagesProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         return;
       }
       
-      // Convert to base64
-      const base64Image = await fileToBase64(imageFile);
+      // Generate a unique file name
+      const fileExt = imageFile.name.split('.').pop();
+      const fileName = `${uuidv4()}.${fileExt}`;
+      const filePath = `${fileName}`;
+      
+      // Upload to Supabase Storage
+      const { error: uploadError, data: uploadData } = await supabase.storage
+        .from('images')
+        .upload(filePath, imageFile);
+      
+      if (uploadError) {
+        throw uploadError;
+      }
+      
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('images')
+        .getPublicUrl(filePath);
       
       // Create new image object
-      const newImage: ImageItem = {
-        id: `image-${Date.now()}`,
+      const newImage: Omit<ImageItem, 'id'> & { id?: string } = {
         name: imageFile.name,
-        url: base64Image,
+        url: publicUrl,
         createdAt: new Date().toISOString(),
         size: imageFile.size
       };
       
-      // Add to state
-      setImages(prev => [newImage, ...prev]);
+      // Save image metadata to the database
+      const { data: dbData, error: dbError } = await supabase
+        .from('gallery_images')
+        .insert([{
+          name: newImage.name,
+          url: publicUrl,
+          size: newImage.size,
+        }])
+        .select('*')
+        .single();
+      
+      if (dbError) {
+        throw dbError;
+      }
+      
+      // Add to state with the database ID
+      setImages(prev => [{
+        id: dbData.id,
+        name: dbData.name,
+        url: dbData.url,
+        createdAt: dbData.created_at,
+        size: dbData.size
+      }, ...prev]);
+      
       toast.success("Imagem carregada com sucesso!");
     } catch (error) {
       console.error("Error uploading image:", error);
@@ -86,9 +124,51 @@ export const ImagesProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   };
 
-  const deleteImage = (id: string) => {
-    setImages(prev => prev.filter(img => img.id !== id));
-    toast.success("Imagem removida com sucesso!");
+  const deleteImage = async (id: string) => {
+    try {
+      // First get the image to find its URL
+      const { data: imageData, error: fetchError } = await supabase
+        .from('gallery_images')
+        .select('url')
+        .eq('id', id)
+        .single();
+      
+      if (fetchError) {
+        throw fetchError;
+      }
+      
+      // Extract the file path from the URL
+      const fileUrl = new URL(imageData.url);
+      const filePath = fileUrl.pathname.split('/').pop();
+      
+      if (filePath) {
+        // Delete from storage
+        const { error: storageError } = await supabase.storage
+          .from('images')
+          .remove([filePath]);
+        
+        if (storageError) {
+          console.error("Error deleting from storage:", storageError);
+        }
+      }
+      
+      // Delete from database
+      const { error: dbError } = await supabase
+        .from('gallery_images')
+        .delete()
+        .eq('id', id);
+      
+      if (dbError) {
+        throw dbError;
+      }
+      
+      // Update state
+      setImages(prev => prev.filter(img => img.id !== id));
+      toast.success("Imagem removida com sucesso!");
+    } catch (error) {
+      console.error("Error deleting image:", error);
+      toast.error("Erro ao remover imagem");
+    }
   };
 
   return (

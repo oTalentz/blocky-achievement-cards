@@ -1,151 +1,131 @@
 
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../integrations/supabase/client';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useToast } from '../hooks/use-toast';
+import { Loader2 } from 'lucide-react';
 
 const Auth: React.FC = () => {
-  const [isLogin, setIsLogin] = useState(true);
-  const [username, setUsername] = useState('');
+  const { isAuthenticated } = useAuth();
+  const { t } = useLanguage();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isAdminLogin, setIsAdminLogin] = useState(false);
-  
-  const { login, register } = useAuth();
-  const { t } = useLanguage();
-  const navigate = useNavigate();
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // If already authenticated, redirect to home
+  if (isAuthenticated) {
+    return <Navigate to="/" />;
+  }
+
+  const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
+    setIsLoading(true);
     
     try {
-      if (isLogin) {
-        // If admin login is checked, use admin@example.com as the email
-        const loginEmail = isAdminLogin ? 'admin@example.com' : email;
-        await login(loginEmail, password);
+      if (isRegistering) {
+        // Sign up
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+        });
+        
+        if (error) throw error;
+        
+        toast({
+          title: t('auth.registrationSuccess'),
+          description: t('auth.checkEmailVerification'),
+        });
       } else {
-        await register(username, email, password);
+        // Sign in
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        
+        if (error) throw error;
+        
+        toast({
+          title: t('auth.loginSuccess'),
+        });
+        
+        navigate('/admin');
       }
-      navigate('/');
-    } catch (error) {
-      console.error(error);
+    } catch (error: any) {
+      console.error('Authentication error:', error);
+      toast({
+        title: t('auth.error'),
+        description: error.message,
+        variant: 'destructive',
+      });
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-background">
-      <div className="w-full max-w-md space-y-8">
-        <div>
-          <div className="flex items-center justify-center gap-2 mb-6">
-            <div className="w-10 h-10 bg-minecraft-dirt rounded-sm flex items-center justify-center border-2 border-black">
-              <div className="w-8 h-8 bg-minecraft-grass rounded-sm border border-black"></div>
-            </div>
-            <h1 className="text-2xl font-bold font-pixel tracking-wider">
-              <span className="text-minecraft-gold">MC</span> Conquistas
-            </h1>
-          </div>
-          <h2 className="mt-6 text-center text-3xl font-pixel font-extrabold">
-            {isLogin ? t('auth.login') : t('auth.register')}
-          </h2>
-        </div>
+    <div className="min-h-screen pt-24 pb-12 px-4 flex items-center justify-center bg-background">
+      <div className="max-w-md w-full bg-card shadow-sm rounded-lg border border-border p-8">
+        <h1 className="text-3xl font-bold mb-6 text-center">
+          {isRegistering ? t('auth.register') : t('auth.login')}
+        </h1>
         
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="rounded-md shadow-sm space-y-4">
-            {!isLogin && (
-              <div>
-                <label htmlFor="username" className="block text-sm font-medium mb-2">
-                  {t('auth.username')}
-                </label>
-                <input
-                  id="username"
-                  name="username"
-                  type="text"
-                  required={!isLogin}
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="w-full px-4 py-2 border border-border rounded-md focus:ring-2 focus:ring-primary focus:outline-none"
-                  placeholder="steve_minecraft"
-                />
-              </div>
-            )}
-            
-            {(isLogin && !isAdminLogin) && (
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium mb-2">
-                  {t('auth.email')}
-                </label>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  required={isLogin && !isAdminLogin}
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-2 border border-border rounded-md focus:ring-2 focus:ring-primary focus:outline-none"
-                  placeholder="example@email.com"
-                />
-              </div>
-            )}
-            
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium mb-2">
-                {t('auth.password')}
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-2 border border-border rounded-md focus:ring-2 focus:ring-primary focus:outline-none"
-              />
-            </div>
-
-            {isLogin && (
-              <div className="flex items-center mt-4">
-                <input
-                  id="admin-login"
-                  name="admin-login"
-                  type="checkbox"
-                  checked={isAdminLogin}
-                  onChange={(e) => setIsAdminLogin(e.target.checked)}
-                  className="h-4 w-4 text-primary border-gray-300 rounded"
-                />
-                <label htmlFor="admin-login" className="ml-2 block text-sm text-gray-700">
-                  {t('auth.adminLogin')}
-                </label>
-              </div>
-            )}
-          </div>
-
+        <form onSubmit={handleAuth} className="space-y-4">
           <div>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="minecraft-btn w-full py-3 px-4 bg-minecraft-grass text-white uppercase font-pixel text-lg"
-            >
-              {isSubmitting ? '...' : t('auth.submit')}
-            </button>
+            <label htmlFor="email" className="block text-sm font-medium mb-1">
+              {t('auth.email')}
+            </label>
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="w-full px-3 py-2 border border-border rounded-md"
+            />
           </div>
           
-          <div className="text-center mt-4">
-            <button
-              type="button"
-              onClick={() => {
-                setIsLogin(!isLogin);
-                setIsAdminLogin(false);
-              }}
-              className="text-primary hover:underline font-medium"
-            >
-              {isLogin ? t('auth.register') : t('auth.login')}
-            </button>
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium mb-1">
+              {t('auth.password')}
+            </label>
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={6}
+              className="w-full px-3 py-2 border border-border rounded-md"
+            />
           </div>
+          
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full bg-primary text-primary-foreground py-2 rounded-md flex items-center justify-center"
+          >
+            {isLoading ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              isRegistering ? t('auth.register') : t('auth.login')
+            )}
+          </button>
         </form>
+        
+        <div className="mt-6 text-center">
+          <button
+            onClick={() => setIsRegistering(!isRegistering)}
+            className="text-primary hover:underline"
+          >
+            {isRegistering ? t('auth.alreadyHaveAccount') : t('auth.dontHaveAccount')}
+          </button>
+        </div>
       </div>
     </div>
   );
