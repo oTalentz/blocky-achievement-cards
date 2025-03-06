@@ -21,8 +21,20 @@ const AchievementCardFront: React.FC<AchievementCardFrontProps> = ({
   const { title, description, rarity, image, unlocked } = achievement;
   const rarityData = rarities.find(r => r.id === rarity);
 
+  // Special effects class based on rarity
+  const getRarityEffectClass = () => {
+    switch(rarity) {
+      case 'epic':
+        return 'achievement-epic';
+      case 'rare':
+        return 'achievement-rare';
+      default:
+        return '';
+    }
+  };
+
   return (
-    <div className="h-full w-full rounded-xl overflow-hidden bg-card p-4 flex flex-col achievement-card-content">
+    <div className={`h-full w-full rounded-xl overflow-hidden bg-card p-4 flex flex-col achievement-card-content ${getRarityEffectClass()}`}>
       {/* Card header */}
       <div className="flex justify-between items-start mb-2">
         <span className={`text-xs font-medium px-2 py-1 rounded ${rarityData?.color} text-white`}>

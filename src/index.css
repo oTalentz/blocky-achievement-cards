@@ -1,3 +1,4 @@
+
 @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&family=VT323&display=swap');
 
 @tailwind base;
@@ -106,6 +107,14 @@
   .card-shine-legendary {
     @apply before:absolute before:w-full before:h-full before:top-0 before:left-0 before:bg-gradient-to-r before:from-transparent before:via-rarity-legendary/30 before:to-transparent before:bg-[length:200%_100%] before:animate-shine;
   }
+
+  .card-shine-epic {
+    @apply before:absolute before:w-full before:h-full before:top-0 before:left-0 before:bg-gradient-to-r before:from-transparent before:via-rarity-epic/30 before:to-transparent before:bg-[length:200%_100%] before:animate-shine-epic;
+  }
+
+  .card-shine-rare {
+    @apply before:absolute before:w-full before:h-full before:top-0 before:left-0 before:bg-gradient-to-r before:from-transparent before:via-rarity-rare/30 before:to-transparent before:bg-[length:200%_100%] before:animate-shine-rare;
+  }
   
   .card-3d {
     transform-style: preserve-3d;
@@ -114,6 +123,43 @@
   
   .pixelated {
     image-rendering: pixelated;
+  }
+
+  /* Special rarity card effects */
+  .achievement-epic {
+    @apply relative overflow-hidden;
+    box-shadow: 0 0 15px rgba(155, 93, 229, 0.3);
+  }
+
+  .achievement-epic::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(155, 93, 229, 0.2) 0%, transparent 60%);
+    animation: pulse-epic 3s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .achievement-rare {
+    @apply relative overflow-hidden;
+    box-shadow: 0 0 10px rgba(94, 158, 222, 0.3);
+  }
+
+  .achievement-rare::after {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    right: -10px;
+    bottom: -10px;
+    background: linear-gradient(45deg, rgba(94, 158, 222, 0) 0%, rgba(94, 158, 222, 0.1) 50%, rgba(94, 158, 222, 0) 100%);
+    animation: rotate-rare 4s linear infinite;
+    pointer-events: none;
+    z-index: 0;
   }
 }
 
@@ -150,4 +196,52 @@
 
 .animate-scale-up {
   animation: scale-up 0.2s ease-out forwards;
+}
+
+/* Add pulse animation for epic cards */
+@keyframes pulse-epic {
+  0% { opacity: 0.4; transform: scale(0.95); }
+  50% { opacity: 0.7; transform: scale(1); }
+  100% { opacity: 0.4; transform: scale(0.95); }
+}
+
+/* Add rotation animation for rare cards */
+@keyframes rotate-rare {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Updated slower card flip animations */
+@keyframes flip-slow {
+  0% { transform: rotateY(0deg); }
+  100% { transform: rotateY(180deg); }
+}
+
+@keyframes unflip-slow {
+  0% { transform: rotateY(180deg); }
+  100% { transform: rotateY(0deg); }
+}
+
+.animate-flip-slow {
+  animation: flip-slow 0.8s ease-out forwards;
+}
+
+.animate-unflip-slow {
+  animation: unflip-slow 0.8s ease-out forwards;
+}
+
+/* Shine animations with different speeds for different rarities */
+@keyframes shine {
+  0% { background-position: -100%; }
+  100% { background-position: 200%; }
+}
+
+@keyframes shine-epic {
+  0% { background-position: -100%; }
+  100% { background-position: 200%; }
+}
+
+@keyframes shine-rare {
+  0% { background-position: -100%; }
+  100% { background-position: 200%; }
 }

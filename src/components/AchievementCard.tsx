@@ -37,6 +37,19 @@ const AchievementCard: React.FC<AchievementCardProps> = ({ achievement }) => {
     setIsFlipped(false);
   };
 
+  // Get the card background gradient class based on rarity
+  const getCardGradientClass = () => {
+    if (rarity === 'legendary') {
+      return 'card-shine-legendary from-rarity-legendary/40 via-rarity-legendary to-rarity-legendary/40';
+    } else if (rarity === 'epic') {
+      return 'card-shine-epic from-rarity-epic/40 via-rarity-epic to-rarity-epic/40';
+    } else if (rarity === 'rare') {
+      return 'card-shine-rare from-rarity-rare/40 via-rarity-rare to-rarity-rare/40';
+    } else {
+      return 'card-shine from-rarity-' + rarity + '/40 via-rarity-' + rarity + ' to-rarity-' + rarity + '/40';
+    }
+  };
+
   return (
     <>
       <div 
@@ -45,14 +58,13 @@ const AchievementCard: React.FC<AchievementCardProps> = ({ achievement }) => {
         onMouseLeave={() => setIsHovered(false)}
       >
         <div 
-          className={`relative h-full w-full rounded-2xl transition-all duration-500 transform-gpu cursor-pointer achievement-card
-            ${isFlipped ? 'animate-flip rotate-y-180' : 'animate-unflip'}`}
+          className={`relative h-full w-full rounded-2xl transition-all duration-700 transform-gpu cursor-pointer achievement-card
+            ${isFlipped ? 'animate-flip-slow rotate-y-180' : 'animate-unflip-slow'}`}
           onClick={handleClick}
         >
           {/* Front of card */}
           <div 
-            className={`absolute inset-0 rounded-2xl p-1 bg-gradient-to-br ${rarity === 'legendary' ? 'card-shine-legendary from-rarity-legendary/40 via-rarity-legendary to-rarity-legendary/40' : 
-              'card-shine from-rarity-' + rarity + '/40 via-rarity-' + rarity + ' to-rarity-' + rarity + '/40'}`}
+            className={`absolute inset-0 rounded-2xl p-1 bg-gradient-to-br ${getCardGradientClass()}`}
             style={{ backfaceVisibility: 'hidden' }}
           >
             <AchievementCardFront 
@@ -65,8 +77,7 @@ const AchievementCard: React.FC<AchievementCardProps> = ({ achievement }) => {
           
           {/* Back of card */}
           <div 
-            className={`absolute inset-0 rounded-2xl p-1 bg-gradient-to-br ${rarity === 'legendary' ? 'card-shine-legendary from-rarity-legendary/40 via-rarity-legendary to-rarity-legendary/40' : 
-              'card-shine from-rarity-' + rarity + '/40 via-rarity-' + rarity + ' to-rarity-' + rarity + '/40'}`}
+            className={`absolute inset-0 rounded-2xl p-1 bg-gradient-to-br ${getCardGradientClass()}`}
             style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
           >
             <AchievementCardBack 
