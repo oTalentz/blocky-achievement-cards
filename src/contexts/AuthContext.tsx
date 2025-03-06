@@ -28,6 +28,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
   const { t } = useLanguage();
 
+  // Função para verificar se é um email de administrador
+  const checkIfAdmin = (email: string | undefined): boolean => {
+    if (!email) return false;
+    return email.includes('admin@');
+  };
+
   useEffect(() => {
     // Check for existing Supabase session on mount
     const checkSession = async () => {
@@ -35,16 +41,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session) {
-          const isAdmin = session.user.email?.includes('admin@') || false;
+          const isAdmin = checkIfAdmin(session.user.email);
           
           const user: User = {
             id: session.user.id,
-            username: session.user.email?.split('@')[0] || '',
+            username: session.user.user_metadata?.username || session.user.email?.split('@')[0] || '',
             email: session.user.email || '',
             isAdmin
           };
           
           setUser(user);
+          
+          if (isAdmin) {
+            console.log('Usuário administrativo autenticado:', user.email);
+          }
         }
       } catch (error) {
         console.error('Error checking session:', error);
@@ -61,16 +71,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.log('Auth state changed:', event, session);
         
         if (event === 'SIGNED_IN' && session) {
-          const isAdmin = session.user.email?.includes('admin@') || false;
+          const isAdmin = checkIfAdmin(session.user.email);
           
           const user: User = {
             id: session.user.id,
-            username: session.user.email?.split('@')[0] || '',
+            username: session.user.user_metadata?.username || session.user.email?.split('@')[0] || '',
             email: session.user.email || '',
             isAdmin
           };
           
           setUser(user);
+          
+          if (isAdmin) {
+            console.log('Usuário administrativo autenticado:', user.email);
+            toast.success(t('auth.adminLoginSuccess'));
+          }
         } else if (event === 'SIGNED_OUT') {
           setUser(null);
         }
@@ -80,7 +95,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [t]);
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
@@ -93,17 +108,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) throw error;
       
       if (data.user) {
-        const isAdmin = email.includes('admin@');
+        const isAdmin = checkIfAdmin(email);
         
         const user: User = {
           id: data.user.id,
-          username: email.split('@')[0],
+          username: data.user.user_metadata?.username || email.split('@')[0],
           email,
           isAdmin
         };
         
         setUser(user);
-        toast.success(t('auth.loginSuccess'));
+        toast.success(isAdmin ? t('auth.adminLoginSuccess') : t('auth.loginSuccess'));
       }
     } catch (error: any) {
       console.error('Login error:', error);
@@ -131,7 +146,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (data.user) {
         toast.success(t('auth.registerSuccess'));
-        
         // Note: Não definimos o usuário aqui porque o Supabase geralmente
         // requer confirmação de email antes de permitir login completo
       }

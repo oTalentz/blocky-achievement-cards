@@ -5,7 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../integrations/supabase/client';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useToast } from '../hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, UserCog } from 'lucide-react';
 
 const Auth: React.FC = () => {
   const { isAuthenticated, login } = useAuth();
@@ -15,6 +15,7 @@ const Auth: React.FC = () => {
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -22,6 +23,18 @@ const Auth: React.FC = () => {
   if (isAuthenticated) {
     return <Navigate to="/" />;
   }
+
+  const handleLoginAsAdmin = () => {
+    setEmail('admin@example.com');
+    setPassword('admin123');
+    setIsRegistering(false);
+  };
+
+  const handleLoginAsUser = () => {
+    setEmail('user@example.com');
+    setPassword('user123');
+    setIsRegistering(false);
+  };
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,6 +46,11 @@ const Auth: React.FC = () => {
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
+          options: {
+            data: {
+              username: username || email.split('@')[0],
+            }
+          }
         });
         
         if (error) throw error;
@@ -50,9 +68,6 @@ const Auth: React.FC = () => {
         
         if (error) throw error;
         
-        // Importante: Aqui não precisamos chamar login explicitamente, pois o AuthContext 
-        // já está detectando a mudança de estado de autenticação através do listener
-        // Apenas mostramos uma mensagem de sucesso
         toast({
           title: t('auth.loginSuccess'),
         });
@@ -79,6 +94,21 @@ const Auth: React.FC = () => {
         </h1>
         
         <form onSubmit={handleAuth} className="space-y-4">
+          {isRegistering && (
+            <div>
+              <label htmlFor="username" className="block text-sm font-medium mb-1">
+                {t('auth.username')}
+              </label>
+              <input
+                id="username"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full px-3 py-2 border border-border rounded-md"
+              />
+            </div>
+          )}
+          
           <div>
             <label htmlFor="email" className="block text-sm font-medium mb-1">
               {t('auth.email')}
@@ -129,6 +159,27 @@ const Auth: React.FC = () => {
             {isRegistering ? t('auth.alreadyHaveAccount') : t('auth.dontHaveAccount')}
           </button>
         </div>
+
+        {!isRegistering && (
+          <div className="mt-6 pt-4 border-t border-border">
+            <p className="text-sm text-center mb-3">{t('auth.loginAs')}:</p>
+            <div className="flex flex-col space-y-2">
+              <button
+                onClick={handleLoginAsAdmin}
+                className="w-full flex items-center justify-center space-x-2 bg-amber-500 text-white py-2 rounded-md hover:bg-amber-600 transition-colors"
+              >
+                <UserCog size={16} />
+                <span>{t('auth.adminAccount')}</span>
+              </button>
+              <button
+                onClick={handleLoginAsUser}
+                className="w-full flex items-center justify-center space-x-2 bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition-colors"
+              >
+                <span>{t('auth.normalAccount')}</span>
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
