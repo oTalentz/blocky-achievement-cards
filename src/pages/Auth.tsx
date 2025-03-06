@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -59,7 +58,6 @@ const Auth: React.FC = () => {
           title: t('auth.registrationSuccess'),
           description: t('auth.checkEmailVerification'),
           duration: 2000,
-          id: 'register-success'
         });
       } else {
         // Sign in with Supabase and get the session
@@ -73,7 +71,6 @@ const Auth: React.FC = () => {
         toast({
           title: t('auth.loginSuccess'),
           duration: 2000,
-          id: 'login-success'
         });
         
         navigate('/');
