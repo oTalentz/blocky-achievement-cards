@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { toast } from "sonner";
 import { useLanguage } from './LanguageContext';
 import { supabase } from '../integrations/supabase/client';
@@ -27,6 +27,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { t } = useLanguage();
+  const adminLoginToastShown = useRef(false);
 
   // Função para verificar se é um email de administrador
   const checkIfAdmin = (email: string | undefined): boolean => {
@@ -52,8 +53,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           
           setUser(user);
           
-          if (isAdmin) {
+          if (isAdmin && !adminLoginToastShown.current) {
             console.log('Usuário administrativo autenticado:', user.email);
+            adminLoginToastShown.current = true;
           }
         }
       } catch (error) {
@@ -82,12 +84,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           
           setUser(user);
           
-          if (isAdmin) {
+          // Evitar múltiplas notificações de login admin
+          if (isAdmin && !adminLoginToastShown.current) {
             console.log('Usuário administrativo autenticado:', user.email);
-            toast.success(t('auth.adminLoginSuccess'));
+            toast.success(t('auth.adminLoginSuccess'), {
+              duration: 2000, // Reduz para 2 segundos
+              id: 'admin-login-success' // ID único para evitar duplicatas
+            });
+            adminLoginToastShown.current = true;
           }
         } else if (event === 'SIGNED_OUT') {
           setUser(null);
+          adminLoginToastShown.current = false;
         }
       }
     );
@@ -118,11 +126,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
         
         setUser(user);
-        toast.success(isAdmin ? t('auth.adminLoginSuccess') : t('auth.loginSuccess'));
+        
+        // Usar ID único para o toast e duração reduzida
+        if (isAdmin) {
+          toast.success(t('auth.adminLoginSuccess'), {
+            duration: 2000,
+            id: 'admin-login-success'
+          });
+          adminLoginToastShown.current = true;
+        } else {
+          toast.success(t('auth.loginSuccess'), {
+            duration: 2000,
+            id: 'login-success'
+          });
+        }
       }
     } catch (error: any) {
       console.error('Login error:', error);
-      toast.error(error.message || "Login failed. Please check your credentials.");
+      toast.error(error.message || "Login failed. Please check your credentials.", {
+        duration: 2000
+      });
       throw error;
     } finally {
       setIsLoading(false);
@@ -145,13 +168,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) throw error;
       
       if (data.user) {
-        toast.success(t('auth.registerSuccess'));
+        toast.success(t('auth.registerSuccess'), {
+          duration: 2000
+        });
         // Note: Não definimos o usuário aqui porque o Supabase geralmente
         // requer confirmação de email antes de permitir login completo
       }
     } catch (error: any) {
       console.error('Registration error:', error);
-      toast.error(error.message || "Registration failed. Please try again.");
+      toast.error(error.message || "Registration failed. Please try again.", {
+        duration: 2000
+      });
       throw error;
     } finally {
       setIsLoading(false);
@@ -164,10 +191,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) throw error;
       
       setUser(null);
-      toast.success(t('auth.logoutSuccess'));
+      adminLoginToastShown.current = false;
+      toast.success(t('auth.logoutSuccess'), {
+        duration: 2000
+      });
     } catch (error: any) {
       console.error('Logout error:', error);
-      toast.error(error.message || "Logout failed. Please try again.");
+      toast.error(error.message || "Logout failed. Please try again.", {
+        duration: 2000
+      });
     }
   };
 

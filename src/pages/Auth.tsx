@@ -58,6 +58,8 @@ const Auth: React.FC = () => {
         toast({
           title: t('auth.registrationSuccess'),
           description: t('auth.checkEmailVerification'),
+          duration: 2000,
+          id: 'register-success'
         });
       } else {
         // Sign in with Supabase and get the session
@@ -70,6 +72,8 @@ const Auth: React.FC = () => {
         
         toast({
           title: t('auth.loginSuccess'),
+          duration: 2000,
+          id: 'login-success'
         });
         
         navigate('/');
@@ -80,6 +84,7 @@ const Auth: React.FC = () => {
         title: t('auth.error'),
         description: error.message,
         variant: 'destructive',
+        duration: 2000
       });
     } finally {
       setIsLoading(false);
