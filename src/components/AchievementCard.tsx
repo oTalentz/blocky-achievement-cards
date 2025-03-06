@@ -15,6 +15,15 @@ const AchievementCard: React.FC<AchievementCardProps> = ({ achievement }) => {
   
   const rarityData = rarities.find(r => r.id === rarity);
   
+  // Ensure the image URL is not cached by browsers
+  const getImageUrl = (url: string) => {
+    // Only add a cache-busting parameter if it doesn't already have one
+    if (url.includes('?')) {
+      return url;
+    }
+    return `${url}?t=${new Date().getTime()}`;
+  };
+  
   const handleClick = () => {
     setIsFlipped(!isFlipped);
   };
@@ -49,10 +58,10 @@ const AchievementCard: React.FC<AchievementCardProps> = ({ achievement }) => {
               )}
             </div>
             
-            {/* Card image */}
+            {/* Card image with cache busting */}
             <div className="relative w-full h-28 bg-muted rounded-lg border-2 border-black overflow-hidden mb-3">
               <img 
-                src={image} 
+                src={getImageUrl(image)} 
                 alt={title} 
                 className={`object-cover w-full h-full pixelated 
                   ${unlocked ? '' : 'opacity-50 blur-sm grayscale'}`}

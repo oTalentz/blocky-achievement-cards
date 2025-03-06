@@ -62,8 +62,9 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
         window.clearInterval(pollingIntervalRef.current);
       }
     };
-  }, [isInitialLoad, pendingChanges]);
+  }, [isInitialLoad, pendingChanges, achievements]);
   
+  // Listen for storage events from other tabs
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'achievements' && e.newValue) {
@@ -77,8 +78,26 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
       }
     };
     
+    // Listen for custom achievement updated events from other windows
+    const handleCustomEvent = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      if (customEvent.detail && customEvent.detail.achievements) {
+        try {
+          const parsedAchievements = JSON.parse(customEvent.detail.achievements);
+          setAchievements(parsedAchievements);
+        } catch (error) {
+          console.error("Error parsing achievements from custom event:", error);
+        }
+      }
+    };
+    
     window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    window.addEventListener('achievements-updated', handleCustomEvent);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('achievements-updated', handleCustomEvent);
+    };
   }, []);
 
   // Initial load effect
@@ -169,22 +188,26 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
       try {
         localStorage.setItem('achievements', JSON.stringify(achievements));
         
-        // Dispatch storage event to update all tabs immediately
-        setTimeout(() => {
-          const event = new StorageEvent('storage', {
-            key: 'achievements',
-            newValue: JSON.stringify(achievements)
-          });
-          window.dispatchEvent(event);
-          
-          // Also trigger a custom event that can be caught by other windows
-          const customEvent = new CustomEvent('achievements-updated', { 
-            detail: { achievements: JSON.stringify(achievements) }
-          });
-          window.dispatchEvent(customEvent);
-          
-          toast.success("Todas as alterações foram confirmadas e publicadas!");
-        }, 300);
+        // Immediately broadcast updates to all tabs and windows
+        const achievementsJSON = JSON.stringify(achievements);
+        
+        // 1. Update localStorage and dispatch storage event for same-origin tabs
+        localStorage.setItem('achievements', achievementsJSON);
+        
+        // 2. Dispatch custom storage event to ensure all tabs receive it
+        const storageEvent = new StorageEvent('storage', {
+          key: 'achievements',
+          newValue: achievementsJSON
+        });
+        window.dispatchEvent(storageEvent);
+        
+        // 3. Also trigger a custom event that can be caught by other windows
+        const customEvent = new CustomEvent('achievements-updated', { 
+          detail: { achievements: achievementsJSON }
+        });
+        window.dispatchEvent(customEvent);
+        
+        toast.success("Todas as alterações foram confirmadas e publicadas!");
       } catch (error) {
         console.error("Error confirming changes:", error);
         toast.error("Erro ao confirmar alterações. Tente novamente.");

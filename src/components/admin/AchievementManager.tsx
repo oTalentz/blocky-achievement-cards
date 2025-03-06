@@ -33,7 +33,8 @@ const AchievementManager: React.FC = () => {
   const handleImageChange = (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const imageUrl = URL.createObjectURL(file);
+      const timestamp = new Date().getTime();
+      const imageUrl = URL.createObjectURL(file) + `?t=${timestamp}`;
       updateAchievementImage(id, imageUrl);
     }
   };
@@ -252,7 +253,8 @@ const AchievementManager: React.FC = () => {
                         onChange={(e) => {
                           const file = e.target.files?.[0];
                           if (file) {
-                            const imageUrl = URL.createObjectURL(file);
+                            const timestamp = new Date().getTime();
+                            const imageUrl = URL.createObjectURL(file) + `?t=${timestamp}`;
                             handleNewAchievementChange('image', imageUrl);
                           }
                         }}
