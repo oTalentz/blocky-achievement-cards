@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Menu, X, LogIn, LogOut, User } from 'lucide-react';
+import { Menu, X, LogIn, LogOut, User, ChevronDown, ChevronUp } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { categories } from '../data/achievements';
 import LanguageSwitcher from './LanguageSwitcher';
@@ -16,6 +16,7 @@ const Header: React.FC<HeaderProps> = ({ activeCategory, setActiveCategory }) =>
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [categoriesExpanded, setCategoriesExpanded] = useState(false);
   const { user, isAuthenticated, logout } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
@@ -58,19 +59,36 @@ const Header: React.FC<HeaderProps> = ({ activeCategory, setActiveCategory }) =>
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-2">
-          <div className="flex space-x-2 mr-4">
-            {categories.map((category) => (
-              <button
-                key={category.id}
-                onClick={() => setActiveCategory(category.id)}
-                className={`px-4 py-2 rounded-md transition-all duration-200 font-medium 
-                  ${activeCategory === category.id 
-                    ? 'bg-primary text-white shadow-lg scale-105' 
-                    : 'hover:bg-muted'}`}
-              >
-                {t(`categories.${category.id}`)}
-              </button>
-            ))}
+          {/* Minimized Categories */}
+          <div className="relative mr-4">
+            <button
+              onClick={() => setCategoriesExpanded(!categoriesExpanded)}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-md hover:bg-muted transition-colors font-medium"
+            >
+              {t(`categories.${activeCategory}`)}
+              {categoriesExpanded ? 
+                <ChevronUp size={16} className="ml-1" /> : 
+                <ChevronDown size={16} className="ml-1" />
+              }
+            </button>
+            
+            {categoriesExpanded && (
+              <div className="absolute top-full left-0 mt-1 w-48 bg-card rounded-md shadow-lg py-1 z-10 border border-border">
+                {categories.map((category) => (
+                  <button
+                    key={category.id}
+                    onClick={() => {
+                      setActiveCategory(category.id);
+                      setCategoriesExpanded(false);
+                    }}
+                    className={`flex w-full items-center px-4 py-2 text-sm hover:bg-muted text-left
+                      ${activeCategory === category.id ? 'bg-primary/10 font-medium text-primary' : ''}`}
+                  >
+                    {t(`categories.${category.id}`)}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
           
           <LanguageSwitcher />
@@ -161,21 +179,33 @@ const Header: React.FC<HeaderProps> = ({ activeCategory, setActiveCategory }) =>
       {mobileMenuOpen && (
         <div className="md:hidden absolute top-full left-0 right-0 bg-background border-t border-border p-4 shadow-lg animate-scale-up">
           <nav className="flex flex-col space-y-2">
-            {categories.map((category) => (
-              <button
-                key={category.id}
-                onClick={() => {
-                  setActiveCategory(category.id);
-                  setMobileMenuOpen(false);
-                }}
-                className={`px-4 py-3 rounded-md transition-all duration-200 font-medium text-left
-                  ${activeCategory === category.id 
-                    ? 'bg-primary text-white' 
-                    : 'hover:bg-muted'}`}
-              >
-                {t(`categories.${category.id}`)}
-              </button>
-            ))}
+            <button
+              className="flex items-center justify-between w-full px-4 py-3 rounded-md bg-muted/50"
+              onClick={() => setCategoriesExpanded(!categoriesExpanded)}
+            >
+              <span className="font-medium">{t(`categories.${activeCategory}`)}</span>
+              {categoriesExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </button>
+            
+            {categoriesExpanded && (
+              <div className="pl-2 space-y-1 border-l-2 border-muted ml-2">
+                {categories.map((category) => (
+                  <button
+                    key={category.id}
+                    onClick={() => {
+                      setActiveCategory(category.id);
+                      setCategoriesExpanded(false);
+                      setMobileMenuOpen(false);
+                    }}
+                    className={`px-4 py-2 w-full text-left rounded-md ${
+                      activeCategory === category.id ? 'text-primary font-medium' : ''
+                    }`}
+                  >
+                    {t(`categories.${category.id}`)}
+                  </button>
+                ))}
+              </div>
+            )}
           </nav>
         </div>
       )}
