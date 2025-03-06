@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Achievement, rarities } from '../data/achievements';
 import { Lock, Trophy, Info, X } from 'lucide-react';
@@ -47,7 +46,7 @@ const AchievementCard: React.FC<AchievementCardProps> = ({ achievement }) => {
               'card-shine from-rarity-' + rarity + '/40 via-rarity-' + rarity + ' to-rarity-' + rarity + '/40'}`}
             style={{ backfaceVisibility: 'hidden' }}
           >
-            <div className="h-full w-full rounded-xl overflow-hidden bg-card p-4 flex flex-col border-2 border-black">
+            <div className="h-full w-full rounded-xl overflow-hidden bg-card p-4 flex flex-col">
               {/* Card header */}
               <div className="flex justify-between items-start mb-2">
                 <span className={`text-xs font-medium px-2 py-1 rounded ${rarityData?.color} text-white`}>
@@ -117,7 +116,7 @@ const AchievementCard: React.FC<AchievementCardProps> = ({ achievement }) => {
               'card-shine from-rarity-' + rarity + '/40 via-rarity-' + rarity + ' to-rarity-' + rarity + '/40'}`}
             style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
           >
-            <div className="h-full w-full rounded-xl overflow-hidden bg-card p-4 flex flex-col border-2 border-black">
+            <div className="h-full w-full rounded-xl overflow-hidden bg-card p-4 flex flex-col">
               <h3 className="font-pixel text-xl font-bold mb-3 text-center">
                 {title}
               </h3>
