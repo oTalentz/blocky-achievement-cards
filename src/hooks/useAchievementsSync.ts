@@ -1,7 +1,6 @@
 
 import { useEffect } from 'react';
 import { Achievement } from '../data/achievements';
-import { toast } from 'sonner';
 
 interface UseAchievementsSyncProps {
   achievements: Achievement[];
@@ -25,7 +24,7 @@ export const useAchievementsSync = ({
         try {
           const updatedAchievements = JSON.parse(e.newValue);
           setAchievements(updatedAchievements);
-          toast.info("Conquistas atualizadas em tempo real!");
+          // Toast notification removed
         } catch (error) {
           console.error("Error parsing updated achievements:", error);
         }
@@ -59,7 +58,7 @@ export const useAchievementsSync = ({
             setAchievements(achievementsData);
           }
           
-          toast.info("Conquistas atualizadas em tempo real!");
+          // Toast notification removed
         } catch (error) {
           console.error("Error handling custom achievement event:", error);
         }
