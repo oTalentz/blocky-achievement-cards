@@ -39,7 +39,7 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
   };
   
-  // Set up polling
+  // Set up polling for real-time updates
   useEffect(() => {
     // Only start polling after initial load is complete
     if (!isInitialLoad) {
@@ -62,7 +62,7 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
         window.clearInterval(pollingIntervalRef.current);
       }
     };
-  }, [isInitialLoad, pendingChanges, achievements]);
+  }, [isInitialLoad, pendingChanges]);
   
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
@@ -70,8 +70,7 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
         try {
           const parsedAchievements = JSON.parse(e.newValue);
           setAchievements(parsedAchievements);
-          
-          // We're no longer showing notifications at all per user request
+          // No notifications per user request
         } catch (error) {
           console.error("Error parsing achievements from storage event:", error);
         }
@@ -82,6 +81,7 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
+  // Initial load effect
   useEffect(() => {
     try {
       const savedAchievements = localStorage.getItem('achievements');
@@ -102,6 +102,7 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     return () => clearTimeout(timer);
   }, []);
 
+  // Storage sync effect
   useEffect(() => {
     if (isInitialLoad) return;
     
@@ -109,9 +110,11 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
       if (achievements.length > 0) {
         localStorage.setItem('achievements', JSON.stringify(achievements));
         
+        // Only trigger storage event when changes are confirmed or no pending changes exist
         if (!pendingChanges && !hasDispatchedRef.current) {
           hasDispatchedRef.current = true;
           
+          // Broadcast storage event to other tabs
           setTimeout(() => {
             const event = new StorageEvent('storage', {
               key: 'achievements',
@@ -166,15 +169,22 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
       try {
         localStorage.setItem('achievements', JSON.stringify(achievements));
         
+        // Dispatch storage event to update all tabs immediately
         setTimeout(() => {
           const event = new StorageEvent('storage', {
             key: 'achievements',
             newValue: JSON.stringify(achievements)
           });
           window.dispatchEvent(event);
+          
+          // Also trigger a custom event that can be caught by other windows
+          const customEvent = new CustomEvent('achievements-updated', { 
+            detail: { achievements: JSON.stringify(achievements) }
+          });
+          window.dispatchEvent(customEvent);
+          
+          toast.success("Todas as alterações foram confirmadas e publicadas!");
         }, 300);
-        
-        toast.success("Todas as alterações foram confirmadas e publicadas!");
       } catch (error) {
         console.error("Error confirming changes:", error);
         toast.error("Erro ao confirmar alterações. Tente novamente.");
