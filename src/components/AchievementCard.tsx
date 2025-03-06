@@ -45,6 +45,8 @@ const AchievementCard: React.FC<AchievementCardProps> = ({ achievement }) => {
       return 'card-shine-epic from-rarity-epic/40 via-rarity-epic to-rarity-epic/40';
     } else if (rarity === 'rare') {
       return 'card-shine-rare from-rarity-rare/40 via-rarity-rare to-rarity-rare/40';
+    } else if (rarity === 'uncommon') {
+      return 'card-shine-uncommon from-rarity-uncommon/40 via-rarity-uncommon to-rarity-uncommon/40';
     } else {
       return 'card-shine from-rarity-' + rarity + '/40 via-rarity-' + rarity + ' to-rarity-' + rarity + '/40';
     }

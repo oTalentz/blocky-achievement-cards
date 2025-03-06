@@ -127,6 +127,10 @@ export default {
 					'0%': { backgroundPosition: '-100%' },
 					'100%': { backgroundPosition: '200%' }
 				},
+				'shine-uncommon': {
+					'0%': { backgroundPosition: '-100%' },
+					'100%': { backgroundPosition: '200%' }
+				},
 				'pulse-epic': {
 					'0%': { opacity: '0.4', transform: 'scale(0.95)' },
 					'50%': { opacity: '0.7', transform: 'scale(1)' },
@@ -135,6 +139,11 @@ export default {
 				'rotate-rare': {
 					'0%': { transform: 'rotate(0deg)' },
 					'100%': { transform: 'rotate(360deg)' }
+				},
+				'sparkle-uncommon': {
+					'0%': { opacity: '0.2', transform: 'translateY(0)' },
+					'50%': { opacity: '0.5', transform: 'translateY(-5px)' },
+					'100%': { opacity: '0.2', transform: 'translateY(0)' }
 				}
 			},
 			animation: {
@@ -150,8 +159,10 @@ export default {
 				'shine': 'shine 1.5s linear infinite',
 				'shine-epic': 'shine-epic 2s linear infinite',
 				'shine-rare': 'shine-rare 3s linear infinite',
+				'shine-uncommon': 'shine-uncommon 2.5s linear infinite',
 				'pulse-epic': 'pulse-epic 3s ease-in-out infinite',
-				'rotate-rare': 'rotate-rare 4s linear infinite'
+				'rotate-rare': 'rotate-rare 4s linear infinite',
+				'sparkle-uncommon': 'sparkle-uncommon 3s ease-in-out infinite'
 			}
 		}
 	},

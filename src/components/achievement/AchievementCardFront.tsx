@@ -28,6 +28,8 @@ const AchievementCardFront: React.FC<AchievementCardFrontProps> = ({
         return 'achievement-epic';
       case 'rare':
         return 'achievement-rare';
+      case 'uncommon':
+        return 'achievement-uncommon';
       default:
         return '';
     }
