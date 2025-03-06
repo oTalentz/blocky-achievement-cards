@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Achievement, rarities } from '../data/achievements';
 import { Lock, Trophy, Info, X } from 'lucide-react';
@@ -36,7 +37,7 @@ const AchievementCard: React.FC<AchievementCardProps> = ({ achievement }) => {
         onMouseLeave={() => setIsHovered(false)}
       >
         <div 
-          className={`relative h-full w-full rounded-2xl transition-all duration-500 transform-gpu cursor-pointer
+          className={`relative h-full w-full rounded-2xl transition-all duration-500 transform-gpu cursor-pointer achievement-card
             ${isFlipped ? 'animate-flip rotate-y-180' : 'animate-unflip'}`}
           onClick={handleClick}
         >
@@ -46,7 +47,7 @@ const AchievementCard: React.FC<AchievementCardProps> = ({ achievement }) => {
               'card-shine from-rarity-' + rarity + '/40 via-rarity-' + rarity + ' to-rarity-' + rarity + '/40'}`}
             style={{ backfaceVisibility: 'hidden' }}
           >
-            <div className="h-full w-full rounded-xl overflow-hidden bg-card p-4 flex flex-col">
+            <div className="h-full w-full rounded-xl overflow-hidden bg-card p-4 flex flex-col achievement-card-content">
               {/* Card header */}
               <div className="flex justify-between items-start mb-2">
                 <span className={`text-xs font-medium px-2 py-1 rounded ${rarityData?.color} text-white`}>
@@ -61,7 +62,7 @@ const AchievementCard: React.FC<AchievementCardProps> = ({ achievement }) => {
               
               {/* Card image - Add onClick handler for zoom */}
               <div 
-                className="relative w-full h-28 bg-muted rounded-lg border-2 border-black overflow-hidden mb-3 cursor-pointer"
+                className="relative w-full h-28 bg-muted rounded-lg overflow-hidden mb-3 cursor-pointer achievement-image-container"
                 onClick={handleImageClick}
               >
                 {/* Use a key to force re-render of the image when the src changes */}
@@ -116,7 +117,7 @@ const AchievementCard: React.FC<AchievementCardProps> = ({ achievement }) => {
               'card-shine from-rarity-' + rarity + '/40 via-rarity-' + rarity + ' to-rarity-' + rarity + '/40'}`}
             style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
           >
-            <div className="h-full w-full rounded-xl overflow-hidden bg-card p-4 flex flex-col">
+            <div className="h-full w-full rounded-xl overflow-hidden bg-card p-4 flex flex-col achievement-card-content">
               <h3 className="font-pixel text-xl font-bold mb-3 text-center">
                 {title}
               </h3>

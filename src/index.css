@@ -1,3 +1,4 @@
+
 @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&family=VT323&display=swap');
 
 @tailwind base;
@@ -115,4 +116,20 @@
   .pixelated {
     image-rendering: pixelated;
   }
+}
+
+/* Update card styles */
+.achievement-card {
+  @apply rounded-2xl border-2 border-black overflow-hidden;
+  box-shadow: 0 2px 0 0 rgba(0,0,0,0.2);
+}
+
+/* Update card content */
+.achievement-card-content {
+  @apply bg-card rounded-xl border-2 border-black overflow-hidden;
+}
+
+/* Update image container */
+.achievement-image-container {
+  @apply border-2 border-black overflow-hidden relative;
 }
