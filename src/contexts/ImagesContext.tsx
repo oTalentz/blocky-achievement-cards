@@ -39,13 +39,15 @@ export const ImagesProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           return;
         }
 
-        setImages(data.map(img => ({
-          id: img.id,
-          name: img.name,
-          url: img.url,
-          createdAt: img.created_at,
-          size: img.size || 0
-        })));
+        if (data && data.length > 0) {
+          setImages(data.map(img => ({
+            id: img.id,
+            name: img.name,
+            url: img.url,
+            createdAt: img.created_at,
+            size: img.size || 0
+          })));
+        }
       } catch (error) {
         console.error("Error in fetchImages:", error);
       }
@@ -60,7 +62,7 @@ export const ImagesProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       
       // Check file size - limit to 5MB
       if (imageFile.size > 5 * 1024 * 1024) {
-        toast.error("A imagem é muito grande (máximo 5MB)");
+        toast.error("A imagem é muito grande (máximo 5MB)", { duration: 2000 });
         return;
       }
       
@@ -75,7 +77,9 @@ export const ImagesProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         .upload(filePath, imageFile);
       
       if (uploadError) {
-        throw uploadError;
+        console.error("Error uploading to storage:", uploadError);
+        toast.error("Erro ao carregar imagem para o storage", { duration: 2000 });
+        return;
       }
       
       // Get public URL
@@ -83,27 +87,21 @@ export const ImagesProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         .from('images')
         .getPublicUrl(filePath);
       
-      // Create new image object
-      const newImage: Omit<ImageItem, 'id'> & { id?: string } = {
-        name: imageFile.name,
-        url: publicUrl,
-        createdAt: new Date().toISOString(),
-        size: imageFile.size
-      };
-      
       // Save image metadata to the database
       const { data: dbData, error: dbError } = await supabase
         .from('gallery_images')
         .insert([{
-          name: newImage.name,
+          name: imageFile.name,
           url: publicUrl,
-          size: newImage.size,
+          size: imageFile.size,
         }])
         .select('*')
         .single();
       
       if (dbError) {
-        throw dbError;
+        console.error("Error saving to database:", dbError);
+        toast.error("Erro ao salvar imagem no banco de dados", { duration: 2000 });
+        return;
       }
       
       // Add to state with the database ID
@@ -115,10 +113,10 @@ export const ImagesProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         size: dbData.size
       }, ...prev]);
       
-      toast.success("Imagem carregada com sucesso!");
+      toast.success("Imagem carregada com sucesso!", { duration: 2000 });
     } catch (error) {
       console.error("Error uploading image:", error);
-      toast.error("Erro ao carregar imagem");
+      toast.error("Erro ao carregar imagem", { duration: 2000 });
     } finally {
       setIsUploading(false);
     }
@@ -134,7 +132,9 @@ export const ImagesProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         .single();
       
       if (fetchError) {
-        throw fetchError;
+        console.error("Error fetching image:", fetchError);
+        toast.error("Erro ao encontrar imagem", { duration: 2000 });
+        return;
       }
       
       // Extract the file path from the URL
@@ -149,6 +149,7 @@ export const ImagesProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         
         if (storageError) {
           console.error("Error deleting from storage:", storageError);
+          // Continue with database deletion even if storage deletion fails
         }
       }
       
@@ -159,15 +160,17 @@ export const ImagesProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         .eq('id', id);
       
       if (dbError) {
-        throw dbError;
+        console.error("Error deleting from database:", dbError);
+        toast.error("Erro ao remover imagem do banco de dados", { duration: 2000 });
+        return;
       }
       
       // Update state
       setImages(prev => prev.filter(img => img.id !== id));
-      toast.success("Imagem removida com sucesso!");
+      toast.success("Imagem removida com sucesso!", { duration: 2000 });
     } catch (error) {
       console.error("Error deleting image:", error);
-      toast.error("Erro ao remover imagem");
+      toast.error("Erro ao remover imagem", { duration: 2000 });
     }
   };
 

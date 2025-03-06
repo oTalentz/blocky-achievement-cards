@@ -34,7 +34,7 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
           return;
         }
 
-        if (data.length > 0) {
+        if (data && data.length > 0) {
           // Map the database data to our Achievement type, ensuring rarity and category are of the correct type
           const mappedAchievements: Achievement[] = data.map(item => ({
             id: item.id,
@@ -52,20 +52,31 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
           setAchievements(mappedAchievements);
         } else {
           // If no data in database, use initial data and insert it
-          await Promise.all(initialAchievements.map(async (achievement) => {
-            await supabase.from('achievements').insert({
-              id: achievement.id,
-              title: achievement.title,
-              description: achievement.description,
-              requirements: achievement.requirements,
-              reward: achievement.reward,
-              category: achievement.category,
-              rarity: achievement.rarity,
-              image_path: achievement.image,
-              unlocked: achievement.unlocked || false
-            });
-          }));
-          setAchievements(initialAchievements);
+          try {
+            for (const achievement of initialAchievements) {
+              // Create proper UUID for each achievement instead of using string IDs
+              const generatedId = uuidv4();
+              
+              await supabase.from('achievements').insert({
+                id: generatedId,
+                title: achievement.title,
+                description: achievement.description,
+                requirements: achievement.requirements,
+                reward: achievement.reward,
+                category: achievement.category,
+                rarity: achievement.rarity,
+                image_path: achievement.image,
+                unlocked: achievement.unlocked || false
+              });
+              
+              // Update the achievement ID to the generated UUID
+              achievement.id = generatedId;
+            }
+            setAchievements(initialAchievements);
+          } catch (insertError) {
+            console.error("Error inserting initial achievements:", insertError);
+            setAchievements(initialAchievements);
+          }
         }
       } catch (error) {
         console.error("Error loading achievements:", error);
@@ -78,22 +89,10 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     fetchAchievements();
   }, []);
 
-  // Convert File to base64 string
-  const fileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = error => reject(error);
-    });
-  };
-
   const addAchievement = async (achievement: Achievement) => {
     try {
-      // Ensure the achievement has a unique ID
-      if (!achievement.id) {
-        achievement.id = uuidv4();
-      }
+      // Generate a proper UUID
+      const generatedId = uuidv4();
       
       // Upload the image to Supabase Storage if it's a base64 string (new image)
       let imagePath = achievement.image;
@@ -103,18 +102,20 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
         // First, convert the base64 to a file
         const response = await fetch(achievement.image);
         const blob = await response.blob();
-        const file = new File([blob], `achievement-${achievement.id}.png`, { type: 'image/png' });
+        const file = new File([blob], `achievement-${generatedId}.png`, { type: 'image/png' });
         
         // Then upload to Supabase Storage
         const fileExt = file.name.split('.').pop();
-        const fileName = `achievement-${achievement.id}.${fileExt}`;
+        const fileName = `achievement-${generatedId}.${fileExt}`;
         
         const { error: uploadError } = await supabase.storage
           .from('images')
           .upload(fileName, file);
         
         if (uploadError) {
-          throw uploadError;
+          console.error("Error uploading image:", uploadError);
+          toast.error("Erro ao fazer upload da imagem", { duration: 2000 });
+          return;
         }
         
         // Get public URL
@@ -125,11 +126,11 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
         imagePath = publicUrl;
       }
       
-      // Save to Supabase
+      // Save to Supabase with the generated UUID
       const { error } = await supabase
         .from('achievements')
         .insert({
-          id: achievement.id,
+          id: generatedId,
           title: achievement.title,
           description: achievement.description,
           requirements: achievement.requirements,
@@ -141,20 +142,23 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
         });
       
       if (error) {
-        throw error;
+        console.error("Error adding achievement:", error);
+        toast.error("Erro ao adicionar conquista", { duration: 2000 });
+        return;
       }
       
-      // Update the achievement with the stored image path
+      // Update the achievement with the stored image path and generated ID
       const newAchievement = {
         ...achievement,
+        id: generatedId,
         image: imagePath
       };
       
       setAchievements(prev => [...prev, newAchievement]);
-      toast.success("Conquista adicionada com sucesso!");
+      toast.success("Conquista adicionada com sucesso!", { duration: 2000 });
     } catch (error) {
       console.error("Error adding achievement:", error);
-      toast.error("Erro ao adicionar conquista");
+      toast.error("Erro ao adicionar conquista", { duration: 2000 });
     }
   };
 
@@ -179,7 +183,9 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
           .upload(fileName, file, { upsert: true });
         
         if (uploadError) {
-          throw uploadError;
+          console.error("Error uploading image:", uploadError);
+          toast.error("Erro ao atualizar imagem", { duration: 2000 });
+          return;
         }
         
         // Get public URL
@@ -206,7 +212,9 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
         .eq('id', achievement.id);
       
       if (error) {
-        throw error;
+        console.error("Error updating achievement:", error);
+        toast.error("Erro ao atualizar conquista", { duration: 2000 });
+        return;
       }
       
       // Update the achievement with the stored image path
@@ -218,10 +226,10 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
       setAchievements(prev => 
         prev.map(a => a.id === achievement.id ? updatedAchievement : a)
       );
-      toast.success("Conquista atualizada com sucesso!");
+      toast.success("Conquista atualizada com sucesso!", { duration: 2000 });
     } catch (error) {
       console.error("Error updating achievement:", error);
-      toast.error("Erro ao atualizar conquista");
+      toast.error("Erro ao atualizar conquista", { duration: 2000 });
     }
   };
 
@@ -237,9 +245,14 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
         
         if (filePath) {
           // Delete from storage
-          await supabase.storage
+          const { error: storageError } = await supabase.storage
             .from('images')
             .remove([filePath]);
+            
+          if (storageError) {
+            console.error("Error deleting image from storage:", storageError);
+            // Continue with database deletion even if storage deletion fails
+          }
         }
       }
       
@@ -250,14 +263,16 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
         .eq('id', id);
       
       if (error) {
-        throw error;
+        console.error("Error deleting achievement:", error);
+        toast.error("Erro ao remover conquista", { duration: 2000 });
+        return;
       }
       
       setAchievements(prev => prev.filter(a => a.id !== id));
-      toast.success("Conquista removida com sucesso!");
+      toast.success("Conquista removida com sucesso!", { duration: 2000 });
     } catch (error) {
       console.error("Error deleting achievement:", error);
-      toast.error("Erro ao remover conquista");
+      toast.error("Erro ao remover conquista", { duration: 2000 });
     }
   };
 
@@ -272,7 +287,9 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
         .upload(fileName, imageFile, { upsert: true });
       
       if (uploadError) {
-        throw uploadError;
+        console.error("Error uploading image:", uploadError);
+        toast.error("Erro ao atualizar imagem", { duration: 2000 });
+        return;
       }
       
       // Get public URL
@@ -287,16 +304,18 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
         .eq('id', id);
       
       if (error) {
-        throw error;
+        console.error("Error updating achievement image:", error);
+        toast.error("Erro ao atualizar imagem na conquista", { duration: 2000 });
+        return;
       }
       
       setAchievements(prev => 
         prev.map(a => a.id === id ? { ...a, image: publicUrl } : a)
       );
-      toast.success("Imagem atualizada com sucesso!");
+      toast.success("Imagem atualizada com sucesso!", { duration: 2000 });
     } catch (error) {
       console.error("Error updating image:", error);
-      toast.error("Erro ao atualizar imagem");
+      toast.error("Erro ao atualizar imagem", { duration: 2000 });
     }
   };
 

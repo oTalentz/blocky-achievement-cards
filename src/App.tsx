@@ -23,7 +23,7 @@ const App: React.FC = () => {
           <AchievementsProvider>
             <ImagesProvider>
               <Router>
-                <Toaster position="top-right" richColors />
+                <Toaster position="top-right" richColors duration={2000} />
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/admin" element={<Admin />} />
