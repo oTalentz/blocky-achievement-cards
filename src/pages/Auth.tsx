@@ -30,7 +30,7 @@ const Auth: React.FC = () => {
     try {
       if (isRegistering) {
         // Sign up with Supabase
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
         });
@@ -42,22 +42,22 @@ const Auth: React.FC = () => {
           description: t('auth.checkEmailVerification'),
         });
       } else {
-        // Sign in with Supabase
-        const { error } = await supabase.auth.signInWithPassword({
+        // Sign in with Supabase and get the session
+        const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
         
         if (error) throw error;
         
-        // Use the existing AuthContext login function
-        await login(email, password);
-        
+        // Importante: Aqui não precisamos chamar login explicitamente, pois o AuthContext 
+        // já está detectando a mudança de estado de autenticação através do listener
+        // Apenas mostramos uma mensagem de sucesso
         toast({
           title: t('auth.loginSuccess'),
         });
         
-        navigate('/admin');
+        navigate('/');
       }
     } catch (error: any) {
       console.error('Authentication error:', error);

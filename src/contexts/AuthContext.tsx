@@ -18,7 +18,7 @@ type AuthContextType = {
   isAdmin: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (username: string, email: string, password: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -31,22 +31,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     // Check for existing Supabase session on mount
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (session) {
-        const isAdmin = session.user.email?.includes('admin@') || false;
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
         
-        const user: User = {
-          id: session.user.id,
-          username: session.user.email?.split('@')[0] || '',
-          email: session.user.email || '',
-          isAdmin
-        };
-        
-        setUser(user);
+        if (session) {
+          const isAdmin = session.user.email?.includes('admin@') || false;
+          
+          const user: User = {
+            id: session.user.id,
+            username: session.user.email?.split('@')[0] || '',
+            email: session.user.email || '',
+            isAdmin
+          };
+          
+          setUser(user);
+        }
+      } catch (error) {
+        console.error('Error checking session:', error);
+      } finally {
+        setIsLoading(false);
       }
-      
-      setIsLoading(false);
     };
     
     checkSession();
@@ -54,6 +58,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state changed:', event, session);
+        
         if (event === 'SIGNED_IN' && session) {
           const isAdmin = session.user.email?.includes('admin@') || false;
           
@@ -99,9 +105,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(user);
         toast.success(t('auth.loginSuccess'));
       }
-    } catch (error) {
-      console.error(error);
-      toast.error("Login failed. Please check your credentials.");
+    } catch (error: any) {
+      console.error('Login error:', error);
+      toast.error(error.message || "Login failed. Please check your credentials.");
       throw error;
     } finally {
       setIsLoading(false);
@@ -124,19 +130,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) throw error;
       
       if (data.user) {
-        const user: User = {
-          id: data.user.id,
-          username,
-          email,
-          isAdmin: false
-        };
-        
-        setUser(user);
         toast.success(t('auth.registerSuccess'));
+        
+        // Note: Não definimos o usuário aqui porque o Supabase geralmente
+        // requer confirmação de email antes de permitir login completo
       }
-    } catch (error) {
-      console.error(error);
-      toast.error("Registration failed. Please try again.");
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      toast.error(error.message || "Registration failed. Please try again.");
       throw error;
     } finally {
       setIsLoading(false);
@@ -144,8 +145,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      setUser(null);
+      toast.success(t('auth.logoutSuccess'));
+    } catch (error: any) {
+      console.error('Logout error:', error);
+      toast.error(error.message || "Logout failed. Please try again.");
+    }
   };
 
   return (
