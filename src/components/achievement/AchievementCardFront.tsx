@@ -1,7 +1,8 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Achievement, rarities } from '../../data/achievements';
 import { Lock, Trophy, Info } from 'lucide-react';
+import { cn } from '../../lib/utils';
 
 interface AchievementCardFrontProps {
   achievement: Achievement;
@@ -16,6 +17,7 @@ const AchievementCardFront: React.FC<AchievementCardFrontProps> = ({
   onImageClick,
   onInfoClick
 }) => {
+  const [showTooltip, setShowTooltip] = useState(false);
   const { title, description, rarity, image, unlocked } = achievement;
   const rarityData = rarities.find(r => r.id === rarity);
 
@@ -78,13 +80,45 @@ const AchievementCardFront: React.FC<AchievementCardFrontProps> = ({
             Clique para detalhes
           </span>
         )}
-        <button 
-          className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-white hover:bg-accent/80 transition-colors cursor-pointer"
-          onClick={onInfoClick}
-          aria-label="Ver mais informações"
-        >
-          <Info size={18} />
-        </button>
+        <div className="relative">
+          <button 
+            className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-white hover:bg-accent/80 transition-colors cursor-pointer"
+            onClick={onInfoClick}
+            onMouseEnter={() => setShowTooltip(true)}
+            onMouseLeave={() => setShowTooltip(false)}
+            aria-label="Ver mais informações"
+          >
+            <Info size={18} />
+          </button>
+          
+          {/* Custom Tooltip */}
+          {showTooltip && (
+            <div 
+              className={cn(
+                "absolute -top-24 right-0 w-48 p-2 bg-popover text-popover-foreground text-sm rounded-md shadow-md border z-50 animate-fade-in",
+                "before:content-[''] before:absolute before:bottom-[-5px] before:right-3 before:w-0 before:h-0",
+                "before:border-l-[6px] before:border-l-transparent",
+                "before:border-r-[6px] before:border-r-transparent",
+                "before:border-t-[6px] before:border-t-popover"
+              )}
+            >
+              <div className="text-center mb-1">
+                <span className="font-pixel text-xs">{rarityData?.name}</span>
+              </div>
+              <div className="text-left mb-1">
+                <p className="text-xs font-medium">Categoria: {achievement.category}</p>
+              </div>
+              {achievement.requirements && (
+                <div className="text-left">
+                  <p className="text-xs text-minecraft-gold truncate">Requisito: {achievement.requirements}</p>
+                </div>
+              )}
+              <div className="text-right mt-1">
+                <span className="text-xs italic">Clique para mais detalhes</span>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
