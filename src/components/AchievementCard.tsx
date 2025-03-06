@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Achievement, rarities } from '../data/achievements';
 import { Lock, Trophy, Info } from 'lucide-react';
 
@@ -10,30 +10,10 @@ interface AchievementCardProps {
 const AchievementCard: React.FC<AchievementCardProps> = ({ achievement }) => {
   const [isFlipped, setIsFlipped] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
-  const [imageUrl, setImageUrl] = useState<string>(achievement.image);
   
-  const { title, description, rarity, requirements, reward, unlocked } = achievement;
+  const { title, description, rarity, image, requirements, reward, unlocked } = achievement;
   
   const rarityData = rarities.find(r => r.id === rarity);
-  
-  // Update the image URL when the achievement changes
-  useEffect(() => {
-    // Always use the latest image URL with timestamp for cache busting
-    setImageUrl(getImageUrl(achievement.image));
-  }, [achievement, achievement.image]);
-  
-  // Ensure the image URL is not cached by browsers
-  const getImageUrl = (url: string): string => {
-    if (!url) return '/placeholder.svg';
-    
-    // If it's a blob URL, make sure it has a timestamp
-    if (url.startsWith('blob:')) {
-      // If it already has a timestamp parameter, use as is or add one
-      return url.includes('?t=') ? url : `${url}?t=${Date.now()}`;
-    }
-    
-    return url;
-  };
   
   const handleClick = () => {
     setIsFlipped(!isFlipped);
@@ -69,18 +49,13 @@ const AchievementCard: React.FC<AchievementCardProps> = ({ achievement }) => {
               )}
             </div>
             
-            {/* Card image with dynamic cache busting */}
+            {/* Card image */}
             <div className="relative w-full h-28 bg-muted rounded-lg border-2 border-black overflow-hidden mb-3">
               <img 
-                key={`img-${achievement.id}-${imageUrl}`} // Force re-render when URL changes
-                src={imageUrl} 
+                src={image} 
                 alt={title} 
                 className={`object-cover w-full h-full pixelated 
                   ${unlocked ? '' : 'opacity-50 blur-sm grayscale'}`}
-                onError={() => {
-                  console.log(`Error loading image: ${imageUrl}`);
-                  setImageUrl('/placeholder.svg');
-                }}
               />
               {!unlocked && (
                 <div className="absolute inset-0 flex items-center justify-center">

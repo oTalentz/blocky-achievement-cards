@@ -1,67 +1,75 @@
 
-import React, { createContext, useContext } from 'react';
-import { Achievement } from '../data/achievements';
-import { AchievementsContextType } from '../types/achievement.types';
-import { useAchievementsStorage } from '../hooks/useAchievementsStorage';
-import { useAchievementsSync } from '../hooks/useAchievementsSync';
-import { achievementOperations } from '../utils/achievementUtils';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { Achievement, achievements as initialAchievements } from '../data/achievements';
+import { toast } from "sonner";
+
+type AchievementsContextType = {
+  achievements: Achievement[];
+  addAchievement: (achievement: Achievement) => void;
+  updateAchievement: (achievement: Achievement) => void;
+  deleteAchievement: (id: string) => void;
+  updateAchievementImage: (id: string, imageUrl: string) => void;
+};
 
 const AchievementsContext = createContext<AchievementsContextType | undefined>(undefined);
 
 export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { 
-    achievements, 
-    setAchievements, 
-    pendingChanges, 
-    setPendingChanges,
-    isInitialLoad,
-    loadAchievements
-  } = useAchievementsStorage();
-  
-  // Set up sync mechanisms
-  useAchievementsSync({
-    achievements,
-    setAchievements,
-    pendingChanges,
-    loadAchievements,
-    isInitialLoad
-  });
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
+
+  useEffect(() => {
+    // Load achievements from localStorage or use the initial data
+    const savedAchievements = localStorage.getItem('achievements');
+    if (savedAchievements) {
+      setAchievements(JSON.parse(savedAchievements));
+    } else {
+      setAchievements(initialAchievements);
+    }
+  }, []);
+
+  // Save to localStorage whenever achievements change
+  useEffect(() => {
+    if (achievements.length > 0) {
+      localStorage.setItem('achievements', JSON.stringify(achievements));
+    }
+  }, [achievements]);
 
   const addAchievement = (achievement: Achievement) => {
-    achievementOperations.addAchievement(achievement, setAchievements, setPendingChanges);
+    // Ensure the achievement has a unique ID
+    if (!achievement.id || achievements.some(a => a.id === achievement.id)) {
+      achievement.id = `achievement-${Date.now()}`;
+    }
+    
+    setAchievements(prev => [...prev, achievement]);
+    toast.success("Conquista adicionada com sucesso!");
   };
 
   const updateAchievement = (achievement: Achievement) => {
-    achievementOperations.updateAchievement(achievement, setAchievements, setPendingChanges);
+    setAchievements(prev => 
+      prev.map(a => a.id === achievement.id ? achievement : a)
+    );
+    toast.success("Conquista atualizada com sucesso!");
   };
 
   const deleteAchievement = (id: string) => {
-    achievementOperations.deleteAchievement(id, setAchievements, setPendingChanges);
+    setAchievements(prev => prev.filter(a => a.id !== id));
+    toast.success("Conquista removida com sucesso!");
   };
 
   const updateAchievementImage = (id: string, imageUrl: string) => {
-    achievementOperations.updateAchievementImage(id, imageUrl, setAchievements, setPendingChanges);
+    setAchievements(prev => 
+      prev.map(a => a.id === id ? { ...a, image: imageUrl } : a)
+    );
+    toast.success("Imagem atualizada com sucesso!");
   };
-  
-  const confirmAllChanges = () => {
-    if (pendingChanges) {
-      achievementOperations.confirmAllChanges(achievements, setPendingChanges);
-    }
-  };
-  
-  const hasPendingChanges = () => pendingChanges;
 
   return (
     <AchievementsContext.Provider
       value={{
         achievements,
-        pendingChanges,
         addAchievement,
         updateAchievement,
         deleteAchievement,
-        updateAchievementImage,
-        confirmAllChanges,
-        hasPendingChanges
+        updateAchievementImage
       }}
     >
       {children}
