@@ -35,7 +35,7 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
         }
 
         if (data.length > 0) {
-          // Map the database data to our Achievement type
+          // Map the database data to our Achievement type, ensuring rarity is of the correct type
           const mappedAchievements: Achievement[] = data.map(item => ({
             id: item.id,
             title: item.title,
@@ -43,7 +43,8 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
             requirements: item.requirements || '',
             reward: item.reward || '',
             category: item.category,
-            rarity: item.rarity,
+            // Cast the rarity to the correct type
+            rarity: item.rarity as "common" | "uncommon" | "rare" | "epic" | "legendary",
             image: item.image_path || '/placeholder.svg',
             unlocked: item.unlocked || false
           }));

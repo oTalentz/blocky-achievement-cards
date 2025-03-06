@@ -8,7 +8,7 @@ import { useToast } from '../hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 
 const Auth: React.FC = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, login } = useAuth();
   const { t } = useLanguage();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -29,7 +29,7 @@ const Auth: React.FC = () => {
     
     try {
       if (isRegistering) {
-        // Sign up
+        // Sign up with Supabase
         const { error } = await supabase.auth.signUp({
           email,
           password,
@@ -42,13 +42,16 @@ const Auth: React.FC = () => {
           description: t('auth.checkEmailVerification'),
         });
       } else {
-        // Sign in
+        // Sign in with Supabase
         const { error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
         
         if (error) throw error;
+        
+        // Use the existing AuthContext login function
+        await login(email, password);
         
         toast({
           title: t('auth.loginSuccess'),
