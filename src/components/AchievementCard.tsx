@@ -51,11 +51,19 @@ const AchievementCard: React.FC<AchievementCardProps> = ({ achievement }) => {
             
             {/* Card image */}
             <div className="relative w-full h-28 bg-muted rounded-lg border-2 border-black overflow-hidden mb-3">
+              {/* Use a key to force re-render of the image when the src changes */}
               <img 
+                key={`${image}-${Date.now()}`}
                 src={image} 
                 alt={title} 
                 className={`object-cover w-full h-full pixelated 
                   ${unlocked ? '' : 'opacity-50 blur-sm grayscale'}`}
+                onError={(e) => {
+                  // Fallback to placeholder if image fails to load
+                  const target = e.target as HTMLImageElement;
+                  target.onerror = null; // Prevent infinite fallback loop
+                  target.src = '/placeholder.svg';
+                }}
               />
               {!unlocked && (
                 <div className="absolute inset-0 flex items-center justify-center">

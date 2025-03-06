@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAchievements } from '../../contexts/AchievementsContext';
 import { Achievement, categories, rarities } from '../../data/achievements';

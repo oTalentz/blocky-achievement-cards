@@ -20,7 +20,12 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     // Load achievements from localStorage or use the initial data
     const savedAchievements = localStorage.getItem('achievements');
     if (savedAchievements) {
-      setAchievements(JSON.parse(savedAchievements));
+      try {
+        setAchievements(JSON.parse(savedAchievements));
+      } catch (error) {
+        console.error("Error parsing achievements from localStorage:", error);
+        setAchievements(initialAchievements);
+      }
     } else {
       setAchievements(initialAchievements);
     }
@@ -39,11 +44,21 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
       achievement.id = `achievement-${Date.now()}`;
     }
     
+    // If the image is a blob URL, we should use a placeholder instead
+    if (achievement.image && achievement.image.startsWith('blob:')) {
+      achievement.image = '/placeholder.svg';
+    }
+    
     setAchievements(prev => [...prev, achievement]);
     toast.success("Conquista adicionada com sucesso!");
   };
 
   const updateAchievement = (achievement: Achievement) => {
+    // Check if image is a blob URL and replace with placeholder if needed
+    if (achievement.image && achievement.image.startsWith('blob:')) {
+      achievement.image = '/placeholder.svg';
+    }
+    
     setAchievements(prev => 
       prev.map(a => a.id === achievement.id ? achievement : a)
     );
@@ -56,8 +71,11 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
   };
 
   const updateAchievementImage = (id: string, imageUrl: string) => {
+    // Instead of using blob URLs directly, use the placeholder
+    const finalImageUrl = imageUrl.startsWith('blob:') ? '/placeholder.svg' : imageUrl;
+    
     setAchievements(prev => 
-      prev.map(a => a.id === id ? { ...a, image: imageUrl } : a)
+      prev.map(a => a.id === id ? { ...a, image: finalImageUrl } : a)
     );
     toast.success("Imagem atualizada com sucesso!");
   };
