@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { Achievement, achievements as initialAchievements } from '../data/achievements';
 import { toast } from "sonner";
 
@@ -19,45 +19,70 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [pendingChanges, setPendingChanges] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const hasDispatchedRef = useRef(false);
   
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'achievements' && e.newValue) {
-        setAchievements(JSON.parse(e.newValue));
-        
-        if (document.hasFocus()) {
-          toast.info("Conquistas atualizadas em tempo real!");
+        try {
+          const parsedAchievements = JSON.parse(e.newValue);
+          setAchievements(parsedAchievements);
+          
+          if (document.hasFocus() && !isInitialLoad) {
+            toast.info("Conquistas atualizadas em tempo real!");
+          }
+        } catch (error) {
+          console.error("Error parsing achievements from storage event:", error);
         }
       }
     };
     
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
+  }, [isInitialLoad]);
 
   useEffect(() => {
-    const savedAchievements = localStorage.getItem('achievements');
-    if (savedAchievements) {
-      setAchievements(JSON.parse(savedAchievements));
-    } else {
+    try {
+      const savedAchievements = localStorage.getItem('achievements');
+      if (savedAchievements) {
+        setAchievements(JSON.parse(savedAchievements));
+      } else {
+        setAchievements(initialAchievements);
+      }
+    } catch (error) {
+      console.error("Error loading initial achievements:", error);
       setAchievements(initialAchievements);
     }
-    setIsInitialLoad(false);
+    
+    const timer = setTimeout(() => {
+      setIsInitialLoad(false);
+    }, 300);
+    
+    return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {
     if (isInitialLoad) return;
     
-    if (achievements.length > 0) {
-      localStorage.setItem('achievements', JSON.stringify(achievements));
-      
-      if (!pendingChanges) {
-        const event = new StorageEvent('storage', {
-          key: 'achievements',
-          newValue: JSON.stringify(achievements)
-        });
-        window.dispatchEvent(event);
+    try {
+      if (achievements.length > 0) {
+        localStorage.setItem('achievements', JSON.stringify(achievements));
+        
+        if (!pendingChanges && !hasDispatchedRef.current) {
+          hasDispatchedRef.current = true;
+          
+          setTimeout(() => {
+            const event = new StorageEvent('storage', {
+              key: 'achievements',
+              newValue: JSON.stringify(achievements)
+            });
+            window.dispatchEvent(event);
+            hasDispatchedRef.current = false;
+          }, 100);
+        }
       }
+    } catch (error) {
+      console.error("Error saving achievements to localStorage:", error);
     }
   }, [achievements, pendingChanges, isInitialLoad]);
 
@@ -97,17 +122,22 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     if (pendingChanges) {
       setPendingChanges(false);
       
-      localStorage.setItem('achievements', JSON.stringify(achievements));
-      
-      const event = new StorageEvent('storage', {
-        key: 'achievements',
-        newValue: JSON.stringify(achievements)
-      });
-      setTimeout(() => {
-        window.dispatchEvent(event);
-      }, 100);
-      
-      toast.success("Todas as alterações foram confirmadas e publicadas!");
+      try {
+        localStorage.setItem('achievements', JSON.stringify(achievements));
+        
+        setTimeout(() => {
+          const event = new StorageEvent('storage', {
+            key: 'achievements',
+            newValue: JSON.stringify(achievements)
+          });
+          window.dispatchEvent(event);
+        }, 300);
+        
+        toast.success("Todas as alterações foram confirmadas e publicadas!");
+      } catch (error) {
+        console.error("Error confirming changes:", error);
+        toast.error("Erro ao confirmar alterações. Tente novamente.");
+      }
     }
   };
   
