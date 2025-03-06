@@ -2,11 +2,19 @@
 import React, { useState } from 'react';
 import { useAchievements } from '../../contexts/AchievementsContext';
 import { Achievement, categories, rarities } from '../../data/achievements';
-import { Pencil, Trash, PlusCircle, Image as ImageIcon, Save, X, Eye } from 'lucide-react';
+import { Pencil, Trash, PlusCircle, Image as ImageIcon, Save, X, Eye, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 const AchievementManager: React.FC = () => {
-  const { achievements, addAchievement, updateAchievement, deleteAchievement, updateAchievementImage } = useAchievements();
+  const { 
+    achievements, 
+    pendingChanges,
+    addAchievement, 
+    updateAchievement, 
+    deleteAchievement, 
+    updateAchievementImage,
+    confirmAllChanges
+  } = useAchievements();
   const [isAdding, setIsAdding] = useState(false);
   const [isEditing, setIsEditing] = useState<string | null>(null);
   const [previewMode, setPreviewMode] = useState<string | null>(null);
@@ -85,20 +93,45 @@ const AchievementManager: React.FC = () => {
     setIsAdding(false);
     setPreviewMode(null);
   };
+  
+  const handleConfirmAllChanges = () => {
+    confirmAllChanges();
+  };
 
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-pixel">Gerenciar Conquistas</h2>
-        <button
-          onClick={() => setIsAdding(true)}
-          className="bg-primary text-primary-foreground px-4 py-2 rounded-md flex items-center gap-2"
-          disabled={isAdding || isEditing !== null}
-        >
-          <PlusCircle size={18} />
-          Adicionar Nova
-        </button>
+        <div className="flex gap-3">
+          {pendingChanges && (
+            <button
+              onClick={handleConfirmAllChanges}
+              className="bg-emerald-500 text-white px-4 py-2 rounded-md flex items-center gap-2"
+            >
+              <CheckCircle2 size={18} />
+              Confirmar Alterações
+            </button>
+          )}
+          <button
+            onClick={() => setIsAdding(true)}
+            className="bg-primary text-primary-foreground px-4 py-2 rounded-md flex items-center gap-2"
+            disabled={isAdding || isEditing !== null}
+          >
+            <PlusCircle size={18} />
+            Adicionar Nova
+          </button>
+        </div>
       </div>
+      
+      {pendingChanges && (
+        <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded-md p-4 mb-6 flex items-center gap-3">
+          <AlertTriangle size={20} className="text-amber-500" />
+          <p>
+            Você tem alterações pendentes que ainda não foram publicadas. 
+            Clique em "Confirmar Alterações" para torná-las visíveis para todos os usuários.
+          </p>
+        </div>
+      )}
       
       {/* Add/Edit Form */}
       {(isAdding || isEditing) && (

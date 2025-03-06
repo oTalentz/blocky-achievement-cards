@@ -5,16 +5,33 @@ import { toast } from "sonner";
 
 type AchievementsContextType = {
   achievements: Achievement[];
+  pendingChanges: boolean;
   addAchievement: (achievement: Achievement) => void;
   updateAchievement: (achievement: Achievement) => void;
   deleteAchievement: (id: string) => void;
   updateAchievementImage: (id: string, imageUrl: string) => void;
+  confirmAllChanges: () => void;
+  hasPendingChanges: () => boolean;
 };
 
 const AchievementsContext = createContext<AchievementsContextType | undefined>(undefined);
 
 export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const [pendingChanges, setPendingChanges] = useState(false);
+  
+  // Setup event listener for storage changes
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'achievements' && e.newValue) {
+        setAchievements(JSON.parse(e.newValue));
+        toast.info("Conquistas atualizadas em tempo real!");
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   useEffect(() => {
     // Load achievements from localStorage or use the initial data
@@ -26,12 +43,21 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
   }, []);
 
-  // Save to localStorage whenever achievements change
+  // Save to localStorage whenever achievements change and there are confirmed changes
   useEffect(() => {
     if (achievements.length > 0) {
       localStorage.setItem('achievements', JSON.stringify(achievements));
+      
+      // Broadcast the change to other tabs/windows
+      if (!pendingChanges) {
+        const event = new StorageEvent('storage', {
+          key: 'achievements',
+          newValue: JSON.stringify(achievements)
+        });
+        window.dispatchEvent(event);
+      }
     }
-  }, [achievements]);
+  }, [achievements, pendingChanges]);
 
   const addAchievement = (achievement: Achievement) => {
     // Ensure the achievement has a unique ID
@@ -40,36 +66,63 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
     
     setAchievements(prev => [...prev, achievement]);
-    toast.success("Conquista adicionada com sucesso!");
+    setPendingChanges(true);
+    toast.success("Conquista adicionada! Lembre-se de confirmar as alterações.");
   };
 
   const updateAchievement = (achievement: Achievement) => {
     setAchievements(prev => 
       prev.map(a => a.id === achievement.id ? achievement : a)
     );
-    toast.success("Conquista atualizada com sucesso!");
+    setPendingChanges(true);
+    toast.success("Conquista atualizada! Lembre-se de confirmar as alterações.");
   };
 
   const deleteAchievement = (id: string) => {
     setAchievements(prev => prev.filter(a => a.id !== id));
-    toast.success("Conquista removida com sucesso!");
+    setPendingChanges(true);
+    toast.success("Conquista removida! Lembre-se de confirmar as alterações.");
   };
 
   const updateAchievementImage = (id: string, imageUrl: string) => {
     setAchievements(prev => 
       prev.map(a => a.id === id ? { ...a, image: imageUrl } : a)
     );
-    toast.success("Imagem atualizada com sucesso!");
+    setPendingChanges(true);
+    toast.success("Imagem atualizada! Lembre-se de confirmar as alterações.");
   };
+  
+  const confirmAllChanges = () => {
+    if (pendingChanges) {
+      setPendingChanges(false);
+      
+      // Force a localStorage update to trigger the storage event for other tabs
+      localStorage.setItem('achievements', JSON.stringify(achievements));
+      
+      // Manually trigger the storage event for the current tab
+      const event = new StorageEvent('storage', {
+        key: 'achievements',
+        newValue: JSON.stringify(achievements)
+      });
+      window.dispatchEvent(event);
+      
+      toast.success("Todas as alterações foram confirmadas e publicadas!");
+    }
+  };
+  
+  const hasPendingChanges = () => pendingChanges;
 
   return (
     <AchievementsContext.Provider
       value={{
         achievements,
+        pendingChanges,
         addAchievement,
         updateAchievement,
         deleteAchievement,
-        updateAchievementImage
+        updateAchievementImage,
+        confirmAllChanges,
+        hasPendingChanges
       }}
     >
       {children}
