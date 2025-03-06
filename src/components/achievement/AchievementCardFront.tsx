@@ -78,11 +78,13 @@ const AchievementCardFront: React.FC<AchievementCardFrontProps> = ({
             Clique para detalhes
           </span>
         )}
-        <Info 
-          size={18} 
-          className={`text-accent transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-0'} hover:text-primary cursor-pointer`} 
+        <button 
+          className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-white hover:bg-accent/80 transition-colors cursor-pointer"
           onClick={onInfoClick}
-        />
+          aria-label="Ver mais informações"
+        >
+          <Info size={18} />
+        </button>
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { X, Trophy, Lock } from 'lucide-react';
-import { Achievement, rarities } from '../../data/achievements';
+import { X, Trophy, Lock, Info } from 'lucide-react';
+import { Achievement, rarities, categories } from '../../data/achievements';
 import { useToast } from "../../hooks/use-toast";
 
 interface AchievementInfoModalProps {
@@ -19,8 +19,9 @@ const AchievementInfoModal: React.FC<AchievementInfoModalProps> = ({
   
   if (!isOpen) return null;
   
-  const { title, rarity, unlocked } = achievement;
+  const { title, description, rarity, category, requirements, reward, unlocked } = achievement;
   const rarityData = rarities.find(r => r.id === rarity);
+  const categoryData = categories.find(c => c.id === category);
 
   return (
     <div 
@@ -50,6 +51,18 @@ const AchievementInfoModal: React.FC<AchievementInfoModalProps> = ({
             </div>
             
             <div className="bg-muted p-3 rounded-lg achievement-image-container">
+              <h4 className="font-pixel text-sm mb-1">Descrição:</h4>
+              <p className="text-sm">{description}</p>
+            </div>
+            
+            <div className="bg-muted p-3 rounded-lg achievement-image-container">
+              <h4 className="font-pixel text-sm mb-1">Categoria:</h4>
+              <p className="font-medium">
+                {categoryData?.name || category}
+              </p>
+            </div>
+            
+            <div className="bg-muted p-3 rounded-lg achievement-image-container">
               <h4 className="font-pixel text-sm mb-1">Raridade:</h4>
               <p className="font-medium">
                 <span className={`inline-block px-2 py-1 rounded ${rarityData?.color} text-white text-xs`}>
@@ -57,6 +70,20 @@ const AchievementInfoModal: React.FC<AchievementInfoModalProps> = ({
                 </span>
               </p>
             </div>
+            
+            {requirements && (
+              <div className="bg-muted p-3 rounded-lg achievement-image-container">
+                <h4 className="font-pixel text-sm mb-1 text-minecraft-gold">Requisitos:</h4>
+                <p className="text-sm">{requirements}</p>
+              </div>
+            )}
+            
+            {reward && (
+              <div className="bg-muted p-3 rounded-lg achievement-image-container">
+                <h4 className="font-pixel text-sm mb-1 text-minecraft-emerald">Recompensa:</h4>
+                <p className="text-sm">{reward}</p>
+              </div>
+            )}
             
             <div className="bg-muted p-3 rounded-lg achievement-image-container">
               <h4 className="font-pixel text-sm mb-1">Status:</h4>
