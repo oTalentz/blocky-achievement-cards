@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Achievement, rarities } from '../data/achievements';
 import { Lock, Trophy, Info, X } from 'lucide-react';

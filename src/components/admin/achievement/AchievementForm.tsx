@@ -152,6 +152,39 @@ const AchievementForm: React.FC<AchievementFormProps> = ({
               </div>
             </div>
           </div>
+          
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-1">Informações Adicionais</label>
+            <div className="border border-border rounded-md overflow-hidden p-3">
+              <p className="text-sm text-muted-foreground mb-2">
+                Estas informações serão exibidas quando o usuário clicar no ícone de informação:
+              </p>
+              
+              <div className="space-y-2">
+                <div>
+                  <label className="block text-xs font-medium mb-0.5">Título (obrigatório)</label>
+                  <input
+                    type="text"
+                    value={achievement.title}
+                    onChange={(e) => onAchievementChange('title', e.target.value)}
+                    className="w-full px-2 py-1 border border-border rounded-md text-sm"
+                    disabled
+                  />
+                  <p className="text-xs text-muted-foreground mt-0.5">O título é compartilhado com o título principal</p>
+                </div>
+                
+                <div>
+                  <label className="block text-xs font-medium mb-0.5">Status</label>
+                  <div className="flex items-center gap-2 text-sm">
+                    <span className={achievement.unlocked ? "text-minecraft-gold" : "text-muted-foreground"}>
+                      {achievement.unlocked ? "Desbloqueado" : "Bloqueado"}
+                    </span>
+                    <p className="text-xs text-muted-foreground">O status é determinado pela configuração 'Desbloqueada'</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       
