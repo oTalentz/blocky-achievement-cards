@@ -66,10 +66,10 @@ const UserProfilePanel: React.FC = () => {
           <div className="p-2">
             <button 
               className="flex w-full items-center gap-2 p-2 rounded-md hover:bg-muted transition-colors text-left"
-              onClick={() => toast.info(t('profile.emailVerified', 'Your email is verified'))}
+              onClick={() => toast.info(t('profile.emailVerified'))}
             >
               <Mail size={18} className="text-muted-foreground" />
-              <span>{t('profile.email', 'Email')}</span>
+              <span>{t('profile.email')}</span>
             </button>
             
             {isAdmin && (
