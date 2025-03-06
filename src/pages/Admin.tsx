@@ -3,16 +3,17 @@ import React, { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
-import { Image, Folder, Tag, Settings, Save, Upload, PlusCircle, Trash2, Edit } from 'lucide-react';
+import { Image, Folder, Tag, Settings, Save, Upload, PlusCircle, Trash2, Edit, Trophy } from 'lucide-react';
 import { categories as originalCategories, rarities } from '../data/achievements';
 import { toast } from 'sonner';
+import AchievementManager from '../components/admin/AchievementManager';
 
-type Tab = 'images' | 'categories' | 'settings';
+type Tab = 'images' | 'categories' | 'settings' | 'achievements';
 
 const Admin: React.FC = () => {
   const { isAuthenticated, isAdmin } = useAuth();
   const { t } = useLanguage();
-  const [activeTab, setActiveTab] = useState<Tab>('categories');
+  const [activeTab, setActiveTab] = useState<Tab>('achievements');
   const [categories, setCategories] = useState([...originalCategories]);
   const [editingCategory, setEditingCategory] = useState<{id: string, name: string} | null>(null);
   const [newCategory, setNewCategory] = useState({ id: '', name: '' });
@@ -63,6 +64,13 @@ const Admin: React.FC = () => {
             <h2 className="text-xl font-pixel mb-4">{t('admin.menu')}</h2>
             <nav className="space-y-1">
               <button 
+                onClick={() => setActiveTab('achievements')}
+                className={`w-full text-left px-4 py-3 rounded-md flex items-center gap-2 ${activeTab === 'achievements' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`}
+              >
+                <Trophy size={18} />
+                Conquistas
+              </button>
+              <button 
                 onClick={() => setActiveTab('images')}
                 className={`w-full text-left px-4 py-3 rounded-md flex items-center gap-2 ${activeTab === 'images' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`}
               >
@@ -88,6 +96,10 @@ const Admin: React.FC = () => {
 
           {/* Content */}
           <div className="bg-card rounded-lg shadow-sm border border-border p-6">
+            {activeTab === 'achievements' && (
+              <AchievementManager />
+            )}
+            
             {activeTab === 'images' && (
               <div>
                 <h2 className="text-2xl font-pixel mb-6 flex items-center gap-2">

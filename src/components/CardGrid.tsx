@@ -1,15 +1,15 @@
-
 import React, { useState, useEffect } from 'react';
 import AchievementCard from './AchievementCard';
 import { Achievement } from '../data/achievements';
 import { Filter, Search } from 'lucide-react';
+import { useAchievements } from '../contexts/AchievementsContext';
 
 interface CardGridProps {
-  achievements: Achievement[];
   activeCategory: string;
 }
 
-const CardGrid: React.FC<CardGridProps> = ({ achievements, activeCategory }) => {
+const CardGrid: React.FC<CardGridProps> = ({ activeCategory }) => {
+  const { achievements } = useAchievements();
   const [filteredAchievements, setFilteredAchievements] = useState<Achievement[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [showUnlocked, setShowUnlocked] = useState(true);

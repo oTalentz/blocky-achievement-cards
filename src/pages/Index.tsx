@@ -1,10 +1,8 @@
-
 import React, { useState } from 'react';
 import HeroSection from '../components/HeroSection';
 import Header from '../components/Header';
 import CardGrid from '../components/CardGrid';
 import Footer from '../components/Footer';
-import { achievements } from '../data/achievements';
 import { useLanguage } from '../contexts/LanguageContext';
 
 const Index: React.FC = () => {
@@ -34,10 +32,7 @@ const Index: React.FC = () => {
             </p>
           </div>
           
-          <CardGrid 
-            achievements={achievements} 
-            activeCategory={activeCategory} 
-          />
+          <CardGrid activeCategory={activeCategory} />
         </section>
         
         <section className="container mx-auto px-6 py-16 border-t border-border">
