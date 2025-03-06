@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAchievements } from '../../contexts/AchievementsContext';
 import { Achievement, categories, rarities } from '../../data/achievements';
@@ -25,9 +26,20 @@ const AchievementManager: React.FC = () => {
   const handleImageChange = (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Simulate image upload by using a URL
-      const imageUrl = URL.createObjectURL(file);
-      updateAchievementImage(id, imageUrl);
+      // Call the context method with the actual file
+      updateAchievementImage(id, file);
+    }
+  };
+
+  const handleNewImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // For new achievements, we'll need to read the file and set it to preview in the form
+      const reader = new FileReader();
+      reader.onload = () => {
+        handleNewAchievementChange('image', reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -211,6 +223,11 @@ const AchievementManager: React.FC = () => {
                       src={newAchievement.image}
                       alt={newAchievement.title || "Nova conquista"}
                       className="w-full h-full object-cover"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.onerror = null;
+                        target.src = '/placeholder.svg';
+                      }}
                     />
                   </div>
                   <div className="p-3">
@@ -221,13 +238,7 @@ const AchievementManager: React.FC = () => {
                         type="file"
                         className="hidden"
                         accept="image/*"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            const imageUrl = URL.createObjectURL(file);
-                            handleNewAchievementChange('image', imageUrl);
-                          }
-                        }}
+                        onChange={handleNewImageChange}
                       />
                     </label>
                   </div>
@@ -282,6 +293,11 @@ const AchievementManager: React.FC = () => {
                         src={achievement.image} 
                         alt={achievement.title}
                         className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.onerror = null;
+                          target.src = '/placeholder.svg';
+                        }}
                       />
                       <label className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 hover:opacity-100 transition-opacity cursor-pointer">
                         <ImageIcon size={16} className="text-white" />

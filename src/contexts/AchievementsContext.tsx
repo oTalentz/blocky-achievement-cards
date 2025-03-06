@@ -8,7 +8,7 @@ type AchievementsContextType = {
   addAchievement: (achievement: Achievement) => void;
   updateAchievement: (achievement: Achievement) => void;
   deleteAchievement: (id: string) => void;
-  updateAchievementImage: (id: string, imageUrl: string) => void;
+  updateAchievementImage: (id: string, imageFile: File) => void;
 };
 
 const AchievementsContext = createContext<AchievementsContextType | undefined>(undefined);
@@ -38,15 +38,20 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
   }, [achievements]);
 
+  // Convert File to base64 string
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = error => reject(error);
+    });
+  };
+
   const addAchievement = (achievement: Achievement) => {
     // Ensure the achievement has a unique ID
     if (!achievement.id || achievements.some(a => a.id === achievement.id)) {
       achievement.id = `achievement-${Date.now()}`;
-    }
-    
-    // If the image is a blob URL, we should use a placeholder instead
-    if (achievement.image && achievement.image.startsWith('blob:')) {
-      achievement.image = '/placeholder.svg';
     }
     
     setAchievements(prev => [...prev, achievement]);
@@ -54,11 +59,6 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
   };
 
   const updateAchievement = (achievement: Achievement) => {
-    // Check if image is a blob URL and replace with placeholder if needed
-    if (achievement.image && achievement.image.startsWith('blob:')) {
-      achievement.image = '/placeholder.svg';
-    }
-    
     setAchievements(prev => 
       prev.map(a => a.id === achievement.id ? achievement : a)
     );
@@ -70,14 +70,19 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     toast.success("Conquista removida com sucesso!");
   };
 
-  const updateAchievementImage = (id: string, imageUrl: string) => {
-    // Instead of using blob URLs directly, use the placeholder
-    const finalImageUrl = imageUrl.startsWith('blob:') ? '/placeholder.svg' : imageUrl;
-    
-    setAchievements(prev => 
-      prev.map(a => a.id === id ? { ...a, image: finalImageUrl } : a)
-    );
-    toast.success("Imagem atualizada com sucesso!");
+  const updateAchievementImage = async (id: string, imageFile: File) => {
+    try {
+      // Convert the file to base64
+      const base64Image = await fileToBase64(imageFile);
+      
+      setAchievements(prev => 
+        prev.map(a => a.id === id ? { ...a, image: base64Image } : a)
+      );
+      toast.success("Imagem atualizada com sucesso!");
+    } catch (error) {
+      console.error("Error updating image:", error);
+      toast.error("Erro ao atualizar imagem");
+    }
   };
 
   return (
