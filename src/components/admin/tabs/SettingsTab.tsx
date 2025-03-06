@@ -1,10 +1,12 @@
 
 import React from 'react';
-import { Settings, Save } from 'lucide-react';
+import { Settings, Save, Moon, Sun } from 'lucide-react';
 import { useLanguage } from '../../../contexts/LanguageContext';
+import { useTheme } from '../../../contexts/ThemeContext';
 
 const SettingsTab: React.FC = () => {
   const { t } = useLanguage();
+  const { theme, toggleTheme } = useTheme();
 
   return (
     <div>
@@ -39,6 +41,30 @@ const SettingsTab: React.FC = () => {
                 defaultValue="Plataforma de conquistas para jogadores de Minecraft"
                 className="w-full px-3 py-2 border border-border rounded-md resize-none"
               />
+            </div>
+            
+            <div className="flex flex-col space-y-4">
+              <div className="flex items-center justify-between">
+                <label className="block text-sm font-medium">
+                  {t('admin.theme')}
+                </label>
+                <button
+                  onClick={toggleTheme}
+                  className="flex items-center gap-2 px-3 py-2 bg-muted/50 rounded-md hover:bg-muted transition-colors"
+                >
+                  {theme === 'dark' ? (
+                    <>
+                      <Sun size={18} className="text-yellow-400" />
+                      <span>{t('admin.lightMode')}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Moon size={18} />
+                      <span>{t('admin.darkMode')}</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
             
             <div className="flex justify-end">

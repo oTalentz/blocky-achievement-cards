@@ -4,6 +4,7 @@ import { Menu, X, LogIn, LogOut, User, ChevronDown, ChevronUp, Settings } from '
 import { Link, useNavigate } from 'react-router-dom';
 import { categories } from '../data/achievements';
 import LanguageSwitcher from './LanguageSwitcher';
+import ThemeToggle from './ThemeToggle';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -91,6 +92,7 @@ const Header: React.FC<HeaderProps> = ({ activeCategory, setActiveCategory }) =>
             )}
           </div>
           
+          <ThemeToggle />
           <LanguageSwitcher />
 
           {isAuthenticated ? (
@@ -139,6 +141,7 @@ const Header: React.FC<HeaderProps> = ({ activeCategory, setActiveCategory }) =>
 
         {/* Mobile Menu Button */}
         <div className="md:hidden flex items-center gap-2">
+          <ThemeToggle />
           <LanguageSwitcher />
           
           {isAuthenticated ? (
