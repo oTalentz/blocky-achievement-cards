@@ -10,6 +10,7 @@ const Auth: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isAdminLogin, setIsAdminLogin] = useState(false);
   
   const { login, register } = useAuth();
   const { t } = useLanguage();
@@ -21,7 +22,9 @@ const Auth: React.FC = () => {
     
     try {
       if (isLogin) {
-        await login(email, password);
+        // If admin login is checked, use admin@example.com as the email
+        const loginEmail = isAdminLogin ? 'admin@example.com' : email;
+        await login(loginEmail, password);
       } else {
         await register(username, email, password);
       }
@@ -70,21 +73,23 @@ const Auth: React.FC = () => {
               </div>
             )}
             
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium mb-2">
-                {t('auth.email')}
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-2 border border-border rounded-md focus:ring-2 focus:ring-primary focus:outline-none"
-                placeholder="example@email.com"
-              />
-            </div>
+            {(isLogin && !isAdminLogin) && (
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium mb-2">
+                  {t('auth.email')}
+                </label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  required={isLogin && !isAdminLogin}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full px-4 py-2 border border-border rounded-md focus:ring-2 focus:ring-primary focus:outline-none"
+                  placeholder="example@email.com"
+                />
+              </div>
+            )}
             
             <div>
               <label htmlFor="password" className="block text-sm font-medium mb-2">
@@ -100,6 +105,22 @@ const Auth: React.FC = () => {
                 className="w-full px-4 py-2 border border-border rounded-md focus:ring-2 focus:ring-primary focus:outline-none"
               />
             </div>
+
+            {isLogin && (
+              <div className="flex items-center mt-4">
+                <input
+                  id="admin-login"
+                  name="admin-login"
+                  type="checkbox"
+                  checked={isAdminLogin}
+                  onChange={(e) => setIsAdminLogin(e.target.checked)}
+                  className="h-4 w-4 text-primary border-gray-300 rounded"
+                />
+                <label htmlFor="admin-login" className="ml-2 block text-sm text-gray-700">
+                  {t('auth.adminLogin')}
+                </label>
+              </div>
+            )}
           </div>
 
           <div>
@@ -115,7 +136,10 @@ const Auth: React.FC = () => {
           <div className="text-center mt-4">
             <button
               type="button"
-              onClick={() => setIsLogin(!isLogin)}
+              onClick={() => {
+                setIsLogin(!isLogin);
+                setIsAdminLogin(false);
+              }}
               className="text-primary hover:underline font-medium"
             >
               {isLogin ? t('auth.register') : t('auth.login')}

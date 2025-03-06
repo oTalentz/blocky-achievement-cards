@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Menu, X, LogIn, LogOut, User, ChevronDown, ChevronUp } from 'lucide-react';
+import { Menu, X, LogIn, LogOut, User, ChevronDown, ChevronUp, Settings } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { categories } from '../data/achievements';
 import LanguageSwitcher from './LanguageSwitcher';
@@ -17,7 +17,7 @@ const Header: React.FC<HeaderProps> = ({ activeCategory, setActiveCategory }) =>
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [categoriesExpanded, setCategoriesExpanded] = useState(false);
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, isAdmin, logout } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
 
@@ -101,10 +101,21 @@ const Header: React.FC<HeaderProps> = ({ activeCategory, setActiveCategory }) =>
               >
                 <User size={16} />
                 <span className="text-sm font-medium">{user?.username}</span>
+                {isAdmin && <span className="ml-1 text-xs bg-primary text-primary-foreground px-1.5 py-0.5 rounded-full">Admin</span>}
               </button>
               
               {userMenuOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-card rounded-md shadow-lg py-1 z-10 border border-border">
+                  {isAdmin && (
+                    <Link
+                      to="/admin"
+                      className="flex w-full items-center px-4 py-2 text-sm hover:bg-muted"
+                      onClick={() => setUserMenuOpen(false)}
+                    >
+                      <Settings size={16} className="mr-2" />
+                      {t('admin.dashboard')}
+                    </Link>
+                  )}
                   <button
                     onClick={handleLogout}
                     className="flex w-full items-center px-4 py-2 text-sm hover:bg-muted"
@@ -138,6 +149,7 @@ const Header: React.FC<HeaderProps> = ({ activeCategory, setActiveCategory }) =>
                 aria-label="User menu"
               >
                 <User size={20} />
+                {isAdmin && <span className="ml-1 text-xs bg-primary text-primary-foreground px-1.5 py-0.5 rounded-full">A</span>}
               </button>
               
               {userMenuOpen && (
@@ -145,6 +157,16 @@ const Header: React.FC<HeaderProps> = ({ activeCategory, setActiveCategory }) =>
                   <div className="px-4 py-2 text-sm font-medium border-b border-border">
                     {user?.username}
                   </div>
+                  {isAdmin && (
+                    <Link
+                      to="/admin"
+                      className="flex w-full items-center px-4 py-2 text-sm hover:bg-muted"
+                      onClick={() => setUserMenuOpen(false)}
+                    >
+                      <Settings size={16} className="mr-2" />
+                      {t('admin.dashboard')}
+                    </Link>
+                  )}
                   <button
                     onClick={handleLogout}
                     className="flex w-full items-center px-4 py-2 text-sm hover:bg-muted"

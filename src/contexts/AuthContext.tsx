@@ -7,12 +7,14 @@ type User = {
   id: string;
   username: string;
   email: string;
+  isAdmin: boolean;
 };
 
 type AuthContextType = {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isAdmin: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (username: string, email: string, password: string) => Promise<void>;
   logout: () => void;
@@ -42,11 +44,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       // Mock authentication - in a real app, this would validate against a backend
       if (email && password) {
+        // Admin login check
+        const isAdmin = email.includes('admin@');
+        
         const mockUser: User = {
           id: '1',
           username: email.split('@')[0],
           email,
+          isAdmin
         };
+        
         setUser(mockUser);
         localStorage.setItem('user', JSON.stringify(mockUser));
         toast.success(t('auth.loginSuccess'));
@@ -70,10 +77,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       // Mock registration - in a real app, this would create a user in the backend
       if (username && email && password) {
+        // By default new users are not admins
         const mockUser: User = {
           id: '1',
           username,
           email,
+          isAdmin: false
         };
         setUser(mockUser);
         localStorage.setItem('user', JSON.stringify(mockUser));
@@ -101,6 +110,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         user,
         isAuthenticated: !!user,
         isLoading,
+        isAdmin: user?.isAdmin || false,
         login,
         register,
         logout
