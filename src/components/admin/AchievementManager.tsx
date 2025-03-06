@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAchievements } from '../../contexts/AchievementsContext';
 import { Achievement, categories, rarities } from '../../data/achievements';
@@ -34,7 +33,6 @@ const AchievementManager: React.FC = () => {
   const handleImageChange = (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Simulate image upload by using a URL
       const imageUrl = URL.createObjectURL(file);
       updateAchievementImage(id, imageUrl);
     }
@@ -54,20 +52,17 @@ const AchievementManager: React.FC = () => {
       updateAchievement(newAchievement);
       setIsEditing(null);
     } else {
-      // Validate before saving
       if (!newAchievement.title || !newAchievement.description) {
         toast.error("Preencha os campos obrigatórios");
         return;
       }
       
-      // Generate ID if empty
       if (!newAchievement.id) {
         newAchievement.id = `achievement-${Date.now()}`;
       }
       
       addAchievement(newAchievement);
       
-      // Reset form for next achievement
       setNewAchievement({
         id: '',
         title: '',
@@ -133,7 +128,6 @@ const AchievementManager: React.FC = () => {
         </div>
       )}
       
-      {/* Add/Edit Form */}
       {(isAdding || isEditing) && (
         <div className="mb-8 bg-muted/30 rounded-lg p-6 border border-border">
           <div className="flex justify-between items-center mb-4">
@@ -288,7 +282,6 @@ const AchievementManager: React.FC = () => {
         </div>
       )}
       
-      {/* Achievements List */}
       <div className="bg-card border border-border rounded-lg overflow-hidden">
         <table className="w-full">
           <thead className="bg-muted/50">
@@ -370,7 +363,6 @@ const AchievementManager: React.FC = () => {
         </table>
       </div>
       
-      {/* Preview Modal */}
       {previewMode && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/60 p-4">
           <div className="bg-card rounded-lg max-w-md w-full overflow-hidden relative">

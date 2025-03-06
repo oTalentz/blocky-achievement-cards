@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Achievement, achievements as initialAchievements } from '../data/achievements';
 import { toast } from "sonner";
@@ -20,7 +19,6 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [pendingChanges, setPendingChanges] = useState(false);
   
-  // Setup event listener for storage changes
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'achievements' && e.newValue) {
@@ -34,7 +32,6 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
   }, []);
 
   useEffect(() => {
-    // Load achievements from localStorage or use the initial data
     const savedAchievements = localStorage.getItem('achievements');
     if (savedAchievements) {
       setAchievements(JSON.parse(savedAchievements));
@@ -43,12 +40,10 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
   }, []);
 
-  // Save to localStorage whenever achievements change and there are confirmed changes
   useEffect(() => {
     if (achievements.length > 0) {
       localStorage.setItem('achievements', JSON.stringify(achievements));
       
-      // Broadcast the change to other tabs/windows
       if (!pendingChanges) {
         const event = new StorageEvent('storage', {
           key: 'achievements',
@@ -60,7 +55,6 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
   }, [achievements, pendingChanges]);
 
   const addAchievement = (achievement: Achievement) => {
-    // Ensure the achievement has a unique ID
     if (!achievement.id || achievements.some(a => a.id === achievement.id)) {
       achievement.id = `achievement-${Date.now()}`;
     }
@@ -96,10 +90,8 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     if (pendingChanges) {
       setPendingChanges(false);
       
-      // Force a localStorage update to trigger the storage event for other tabs
       localStorage.setItem('achievements', JSON.stringify(achievements));
       
-      // Manually trigger the storage event for the current tab
       const event = new StorageEvent('storage', {
         key: 'achievements',
         newValue: JSON.stringify(achievements)
