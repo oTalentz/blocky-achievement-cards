@@ -18,12 +18,16 @@ const AchievementsContext = createContext<AchievementsContextType | undefined>(u
 export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [pendingChanges, setPendingChanges] = useState(false);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'achievements' && e.newValue) {
         setAchievements(JSON.parse(e.newValue));
-        toast.info("Conquistas atualizadas em tempo real!");
+        
+        if (document.hasFocus()) {
+          toast.info("Conquistas atualizadas em tempo real!");
+        }
       }
     };
     
@@ -38,9 +42,12 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     } else {
       setAchievements(initialAchievements);
     }
+    setIsInitialLoad(false);
   }, []);
 
   useEffect(() => {
+    if (isInitialLoad) return;
+    
     if (achievements.length > 0) {
       localStorage.setItem('achievements', JSON.stringify(achievements));
       
@@ -52,7 +59,7 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
         window.dispatchEvent(event);
       }
     }
-  }, [achievements, pendingChanges]);
+  }, [achievements, pendingChanges, isInitialLoad]);
 
   const addAchievement = (achievement: Achievement) => {
     if (!achievement.id || achievements.some(a => a.id === achievement.id)) {
@@ -96,7 +103,9 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
         key: 'achievements',
         newValue: JSON.stringify(achievements)
       });
-      window.dispatchEvent(event);
+      setTimeout(() => {
+        window.dispatchEvent(event);
+      }, 100);
       
       toast.success("Todas as alterações foram confirmadas e publicadas!");
     }
