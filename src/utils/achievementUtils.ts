@@ -19,6 +19,11 @@ export const achievementOperations = {
     
     setAchievements(prev => [...prev, achievement]);
     setPendingChanges(true);
+    
+    // Ensure the achievement is immediately saved to localStorage
+    const currentAchievements = JSON.parse(localStorage.getItem('achievements') || '[]');
+    localStorage.setItem('achievements', JSON.stringify([...currentAchievements, achievement]));
+    
     toast.success("Conquista adicionada! Lembre-se de confirmar as alterações.");
   },
 
@@ -32,9 +37,13 @@ export const achievementOperations = {
       achievement.image = `${achievement.image}?t=${Date.now()}`;
     }
     
-    setAchievements(prev => 
-      prev.map(a => a.id === achievement.id ? achievement : a)
-    );
+    setAchievements(prev => {
+      const updated = prev.map(a => a.id === achievement.id ? achievement : a);
+      // Ensure the achievements are immediately saved to localStorage
+      localStorage.setItem('achievements', JSON.stringify(updated));
+      return updated;
+    });
+    
     setPendingChanges(true);
     toast.success("Conquista atualizada! Lembre-se de confirmar as alterações.");
   },
@@ -44,7 +53,13 @@ export const achievementOperations = {
     setAchievements: React.Dispatch<React.SetStateAction<Achievement[]>>,
     setPendingChanges: (value: boolean) => void
   ) => {
-    setAchievements(prev => prev.filter(a => a.id !== id));
+    setAchievements(prev => {
+      const updated = prev.filter(a => a.id !== id);
+      // Ensure the achievements are immediately saved to localStorage
+      localStorage.setItem('achievements', JSON.stringify(updated));
+      return updated;
+    });
+    
     setPendingChanges(true);
     toast.success("Conquista removida! Lembre-se de confirmar as alterações.");
   },
@@ -60,9 +75,20 @@ export const achievementOperations = {
       imageUrl = `${imageUrl}?t=${Date.now()}`;
     }
     
-    setAchievements(prev => 
-      prev.map(a => a.id === id ? { ...a, image: imageUrl } : a)
-    );
+    setAchievements(prev => {
+      // Create a deep copy to ensure image updates are tracked properly
+      const updated = prev.map(a => {
+        if (a.id === id) {
+          return { ...a, image: imageUrl };
+        }
+        return a;
+      });
+      
+      // Ensure the achievements are immediately saved to localStorage
+      localStorage.setItem('achievements', JSON.stringify(updated));
+      return updated;
+    });
+    
     setPendingChanges(true);
     toast.success("Imagem atualizada! Lembre-se de confirmar as alterações.");
   },
