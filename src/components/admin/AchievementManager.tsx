@@ -1,39 +1,33 @@
-
-import React, { useState } from 'react';
+import React from 'react';
 import { useAchievements } from '../../contexts/AchievementsContext';
 import { Achievement } from '../../data/achievements';
 import { PlusCircle, CheckCircle2, AlertTriangle } from 'lucide-react';
-import { toast } from 'sonner';
 import AchievementForm from './achievement/AchievementForm';
 import AchievementList from './achievement/AchievementList';
 import AchievementPreviewModal from './achievement/AchievementPreviewModal';
+import { useAchievementForm } from '../../hooks/useAchievementForm';
 
 const AchievementManager: React.FC = () => {
   const { 
     achievements, 
     pendingChanges,
-    addAchievement, 
-    updateAchievement, 
     deleteAchievement, 
     updateAchievementImage,
     confirmAllChanges
   } = useAchievements();
   
-  const [isAdding, setIsAdding] = useState(false);
-  const [isEditing, setIsEditing] = useState<string | null>(null);
-  const [previewMode, setPreviewMode] = useState<string | null>(null);
+  const {
+    achievement,
+    isAdding,
+    isEditing,
+    startAddNew,
+    startEdit,
+    handleChange,
+    handleSave,
+    resetForm
+  } = useAchievementForm();
   
-  const [newAchievement, setNewAchievement] = useState<Achievement>({
-    id: '',
-    title: '',
-    description: '',
-    rarity: 'common',
-    category: 'building',
-    image: '/placeholder.svg',
-    requirements: '',
-    reward: '',
-    unlocked: false
-  });
+  const [previewMode, setPreviewMode] = React.useState<string | null>(null);
 
   const handleImageChange = (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -43,55 +37,8 @@ const AchievementManager: React.FC = () => {
     }
   };
 
-  const handleNewAchievementChange = (field: keyof Achievement, value: any) => {
-    setNewAchievement(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleEditAchievement = (achievement: Achievement) => {
-    setIsEditing(achievement.id);
-    setNewAchievement(achievement);
-  };
-
-  const handleSaveEdit = () => {
-    if (isEditing) {
-      updateAchievement(newAchievement);
-      setIsEditing(null);
-    } else {
-      if (!newAchievement.title || !newAchievement.description) {
-        toast.error("Preencha os campos obrigatórios");
-        return;
-      }
-      
-      if (!newAchievement.id) {
-        newAchievement.id = `achievement-${Date.now()}`;
-      }
-      
-      addAchievement(newAchievement);
-      
-      setNewAchievement({
-        id: '',
-        title: '',
-        description: '',
-        rarity: 'common',
-        category: 'building',
-        image: '/placeholder.svg',
-        requirements: '',
-        reward: '',
-        unlocked: false
-      });
-      
-      setIsAdding(false);
-    }
-  };
-
   const handlePreview = (achievement: Achievement) => {
     setPreviewMode(achievement.id);
-  };
-
-  const handleCancelEdit = () => {
-    setIsEditing(null);
-    setIsAdding(false);
-    setPreviewMode(null);
   };
   
   const handleConfirmAllChanges = () => {
@@ -113,7 +60,7 @@ const AchievementManager: React.FC = () => {
             </button>
           )}
           <button
-            onClick={() => setIsAdding(true)}
+            onClick={startAddNew}
             className="bg-primary text-primary-foreground px-4 py-2 rounded-md flex items-center gap-2"
             disabled={isAdding || isEditing !== null}
           >
@@ -135,17 +82,17 @@ const AchievementManager: React.FC = () => {
       
       {(isAdding || isEditing) && (
         <AchievementForm
-          achievement={newAchievement}
+          achievement={achievement}
           isEditing={!!isEditing}
-          onCancel={handleCancelEdit}
-          onSave={handleSaveEdit}
-          onAchievementChange={handleNewAchievementChange}
+          onCancel={resetForm}
+          onSave={handleSave}
+          onAchievementChange={handleChange}
         />
       )}
       
       <AchievementList
         achievements={achievements}
-        onEdit={handleEditAchievement}
+        onEdit={startEdit}
         onDelete={deleteAchievement}
         onPreview={handlePreview}
         onImageChange={handleImageChange}
