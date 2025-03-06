@@ -1,129 +1,145 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-type Language = 'pt-BR' | 'en';
+type Language = 'pt-BR' | 'en-US';
+
+type TranslationSet = {
+  [key: string]: string;
+};
+
+type TranslationsType = {
+  [key in Language]: TranslationSet;
+};
 
 type LanguageContextType = {
   language: Language;
   setLanguage: (language: Language) => void;
-  translations: Record<string, Record<string, string>>;
   t: (key: string) => string;
 };
 
-const translations = {
+// Translations
+const translations: TranslationsType = {
   'pt-BR': {
-    // Header
-    'categories.all': 'Todos',
-    'categories.construction': 'Construção',
-    'categories.redstone': 'Redstone',
-    'categories.exploration': 'Exploração',
-    // Hero
-    'hero.title': 'Conquistas de Minecraft',
-    'hero.subtitle': 'Desbloqueie, Construa, Conquiste!',
-    'hero.description': 'Descubra todas as conquistas disponíveis para os construtores de Minecraft. Complete os desafios para ganhar recompensas exclusivas.',
-    'hero.button': 'Explorar Conquistas',
-    // Collection section
-    'collection.title': 'Coleção',
-    'collection.heading': 'Conquistas de Construção',
-    'collection.description': 'Descubra todas as conquistas disponíveis para os construtores de Minecraft. Complete os desafios para desbloquear recompensas exclusivas.',
-    // How it works section
-    'howItWorks.title': 'Instruções',
-    'howItWorks.heading': 'Como Funciona',
-    'howItWorks.description': 'Siga estes passos simples para começar a desbloquear suas conquistas de construção.',
-    'howItWorks.step1.title': 'Construa',
-    'howItWorks.step1.description': 'Crie suas construções no Minecraft seguindo os requisitos das conquistas.',
-    'howItWorks.step2.title': 'Compartilhe',
-    'howItWorks.step2.description': 'Tire screenshots ou grave vídeos da sua construção e envie para validação.',
-    'howItWorks.step3.title': 'Desbloqueie',
-    'howItWorks.step3.description': 'Receba suas conquistas e recompensas exclusivas após a validação.',
-    'howItWorks.button': 'Saiba Mais',
-    // Login/Register
+    'app.title': 'Minecraft Construtor',
+    'app.subtitle': 'Guia de construção e inspiração',
+    'nav.home': 'Início',
+    'nav.achievements': 'Conquistas',
+    'nav.categories': 'Categorias',
+    'nav.login': 'Entrar',
+    'nav.logout': 'Sair',
+    'nav.admin': 'Admin',
+    'hero.title': 'Transforme seu mundo Minecraft',
+    'hero.subtitle': 'Desbloqueie conquistas, descubra designs incríveis e aprimore suas habilidades de construção',
+    'hero.cta': 'Explorar Agora',
+    'achievements.title': 'Conquistas de Construção',
+    'achievements.subtitle': 'Desbloqueie conquistas à medida que constrói e se torna um mestre construtor',
+    'achievements.unlock': 'Desbloqueie esta conquista',
+    'admin.dashboard': 'Painel de Administração',
+    'admin.achievements': 'Conquistas',
+    'admin.images': 'Imagens',
+    'admin.categories': 'Categorias',
+    'admin.settings': 'Configurações',
+    'admin.uploadImages': 'Carregar Imagens',
+    'admin.upload': 'Carregar',
+    'admin.uploading': 'Carregando...',
+    'admin.dragImages': 'Arraste imagens para cá ou clique para selecionar',
+    'admin.supportedFormats': 'JPEG, PNG, GIF (Máximo 5MB)',
+    'admin.imageLibrary': 'Biblioteca de Imagens',
+    'admin.noImages': 'Sem imagens',
+    'admin.confirmDelete': 'Tem certeza que deseja excluir esta imagem?',
+    'admin.onlyImages': 'Apenas imagens são permitidas',
+    'admin.id': 'ID',
+    'admin.name': 'Nome',
+    'admin.color': 'Cor',
+    'admin.language': 'Idioma',
+    'admin.theme': 'Tema',
+    'admin.darkMode': 'Modo Escuro',
     'auth.login': 'Entrar',
     'auth.register': 'Registrar',
     'auth.email': 'Email',
     'auth.password': 'Senha',
-    'auth.username': 'Nome de usuário',
+    'auth.confirmPassword': 'Confirmar Senha',
     'auth.submit': 'Enviar',
-    'auth.logout': 'Sair',
-    'auth.loginSuccess': 'Login realizado com sucesso!',
-    'auth.registerSuccess': 'Conta criada com sucesso!',
-    // Language
-    'language.switch': 'English',
+    'auth.alreadyAccount': 'Já tem uma conta? Entrar',
+    'auth.noAccount': 'Não tem uma conta? Registrar',
+    'error.404': 'Página não encontrada',
+    'error.goHome': 'Voltar ao Início',
   },
-  'en': {
-    // Header
-    'categories.all': 'All',
-    'categories.construction': 'Construction',
-    'categories.redstone': 'Redstone',
-    'categories.exploration': 'Exploration',
-    // Hero
-    'hero.title': 'Minecraft Achievements',
-    'hero.subtitle': 'Unlock, Build, Conquer!',
-    'hero.description': 'Discover all the achievements available for Minecraft builders. Complete challenges to earn exclusive rewards.',
-    'hero.button': 'Explore Achievements',
-    // Collection section
-    'collection.title': 'Collection',
-    'collection.heading': 'Building Achievements',
-    'collection.description': 'Discover all the achievements available for Minecraft builders. Complete challenges to unlock exclusive rewards.',
-    // How it works section
-    'howItWorks.title': 'Instructions',
-    'howItWorks.heading': 'How It Works',
-    'howItWorks.description': 'Follow these simple steps to start unlocking your building achievements.',
-    'howItWorks.step1.title': 'Build',
-    'howItWorks.step1.description': 'Create your builds in Minecraft following the achievement requirements.',
-    'howItWorks.step2.title': 'Share',
-    'howItWorks.step2.description': 'Take screenshots or record videos of your builds and submit for validation.',
-    'howItWorks.step3.title': 'Unlock',
-    'howItWorks.step3.description': 'Receive your achievements and exclusive rewards after validation.',
-    'howItWorks.button': 'Learn More',
-    // Login/Register
+  'en-US': {
+    'app.title': 'Minecraft Builder',
+    'app.subtitle': 'Building guide and inspiration',
+    'nav.home': 'Home',
+    'nav.achievements': 'Achievements',
+    'nav.categories': 'Categories',
+    'nav.login': 'Login',
+    'nav.logout': 'Logout',
+    'nav.admin': 'Admin',
+    'hero.title': 'Transform your Minecraft world',
+    'hero.subtitle': 'Unlock achievements, discover amazing designs, and improve your building skills',
+    'hero.cta': 'Explore Now',
+    'achievements.title': 'Building Achievements',
+    'achievements.subtitle': 'Unlock achievements as you build and become a master builder',
+    'achievements.unlock': 'Unlock this achievement',
+    'admin.dashboard': 'Admin Dashboard',
+    'admin.achievements': 'Achievements',
+    'admin.images': 'Images',
+    'admin.categories': 'Categories',
+    'admin.settings': 'Settings',
+    'admin.uploadImages': 'Upload Images',
+    'admin.upload': 'Upload',
+    'admin.uploading': 'Uploading...',
+    'admin.dragImages': 'Drag images here or click to select',
+    'admin.supportedFormats': 'JPEG, PNG, GIF (Max 5MB)',
+    'admin.imageLibrary': 'Image Library',
+    'admin.noImages': 'No images',
+    'admin.confirmDelete': 'Are you sure you want to delete this image?',
+    'admin.onlyImages': 'Only images are allowed',
+    'admin.id': 'ID',
+    'admin.name': 'Name',
+    'admin.color': 'Color',
+    'admin.language': 'Language',
+    'admin.theme': 'Theme',
+    'admin.darkMode': 'Dark Mode',
     'auth.login': 'Login',
     'auth.register': 'Register',
     'auth.email': 'Email',
     'auth.password': 'Password',
-    'auth.username': 'Username',
+    'auth.confirmPassword': 'Confirm Password',
     'auth.submit': 'Submit',
-    'auth.logout': 'Logout',
-    'auth.loginSuccess': 'Login successful!',
-    'auth.registerSuccess': 'Account created successfully!',
-    // Language
-    'language.switch': 'Português',
+    'auth.alreadyAccount': 'Already have an account? Login',
+    'auth.noAccount': 'Don\'t have an account? Register',
+    'error.404': 'Page Not Found',
+    'error.goHome': 'Go Home',
   }
 };
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Get saved language preference or default to Portuguese
-  const [language, setLanguageState] = useState<Language>(() => {
+  const [language, setLanguage] = useState<Language>('pt-BR');
+
+  useEffect(() => {
+    // Load language from localStorage
     const savedLanguage = localStorage.getItem('language');
-    return (savedLanguage as Language) || 'pt-BR';
-  });
+    if (savedLanguage && (savedLanguage === 'pt-BR' || savedLanguage === 'en-US')) {
+      setLanguage(savedLanguage as Language);
+    }
+  }, []);
 
-  // Update local storage when language changes
-  const setLanguage = (newLanguage: Language) => {
-    setLanguageState(newLanguage);
-    localStorage.setItem('language', newLanguage);
-  };
+  useEffect(() => {
+    // Save language to localStorage
+    localStorage.setItem('language', language);
+  }, [language]);
 
-  // Translation helper function
+  // Translation function
   const t = (key: string): string => {
     return translations[language][key] || key;
   };
 
-  useEffect(() => {
-    // Update HTML lang attribute when language changes
-    document.documentElement.lang = language;
-  }, [language]);
-
-  const value = {
-    language,
-    setLanguage,
-    translations,
-    t
-  };
-
-  return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
+  return (
+    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+      {children}
+    </LanguageContext.Provider>
+  );
 };
 
 export const useLanguage = (): LanguageContextType => {
