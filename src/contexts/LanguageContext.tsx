@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 type Language = 'pt-BR' | 'en-US';
@@ -34,10 +35,12 @@ const translations: TranslationsType = {
     'achievements.subtitle': 'Desbloqueie conquistas à medida que constrói e se torna um mestre construtor',
     'achievements.unlock': 'Desbloqueie esta conquista',
     'admin.dashboard': 'Painel de Administração',
+    'admin.menu': 'Menu',
     'admin.achievements': 'Conquistas',
     'admin.images': 'Imagens',
     'admin.categories': 'Categorias',
     'admin.settings': 'Configurações',
+    'admin.generalSettings': 'Configurações Gerais',
     'admin.uploadImages': 'Carregar Imagens',
     'admin.upload': 'Carregar',
     'admin.uploading': 'Carregando...',
@@ -53,6 +56,7 @@ const translations: TranslationsType = {
     'admin.language': 'Idioma',
     'admin.theme': 'Tema',
     'admin.darkMode': 'Modo Escuro',
+    'admin.returnHome': 'Voltar para o Início',
     'auth.login': 'Entrar',
     'auth.register': 'Registrar',
     'auth.email': 'Email',
@@ -63,6 +67,7 @@ const translations: TranslationsType = {
     'auth.noAccount': 'Não tem uma conta? Registrar',
     'error.404': 'Página não encontrada',
     'error.goHome': 'Voltar ao Início',
+    'language.switch': 'Mudar idioma',
   },
   'en-US': {
     'app.title': 'Minecraft Builder',
@@ -80,10 +85,12 @@ const translations: TranslationsType = {
     'achievements.subtitle': 'Unlock achievements as you build and become a master builder',
     'achievements.unlock': 'Unlock this achievement',
     'admin.dashboard': 'Admin Dashboard',
+    'admin.menu': 'Menu',
     'admin.achievements': 'Achievements',
     'admin.images': 'Images',
     'admin.categories': 'Categories',
     'admin.settings': 'Settings',
+    'admin.generalSettings': 'General Settings',
     'admin.uploadImages': 'Upload Images',
     'admin.upload': 'Upload',
     'admin.uploading': 'Uploading...',
@@ -99,6 +106,7 @@ const translations: TranslationsType = {
     'admin.language': 'Language',
     'admin.theme': 'Theme',
     'admin.darkMode': 'Dark Mode',
+    'admin.returnHome': 'Return to Home',
     'auth.login': 'Login',
     'auth.register': 'Register',
     'auth.email': 'Email',
@@ -109,6 +117,7 @@ const translations: TranslationsType = {
     'auth.noAccount': 'Don\'t have an account? Register',
     'error.404': 'Page Not Found',
     'error.goHome': 'Go Home',
+    'language.switch': 'Switch language',
   }
 };
 
