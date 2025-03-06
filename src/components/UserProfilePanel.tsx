@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
-import { User, Mail, LogOut, UserCog } from 'lucide-react';
+import { User, Mail, LogOut, UserCog, Settings } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 
@@ -25,6 +25,11 @@ const UserProfilePanel: React.FC = () => {
 
   const handleGoToAdmin = () => {
     navigate('/admin');
+    setIsExpanded(false);
+  };
+
+  const handleGoToProfile = () => {
+    navigate('/profile');
     setIsExpanded(false);
   };
 
@@ -66,10 +71,10 @@ const UserProfilePanel: React.FC = () => {
           <div className="p-2">
             <button 
               className="flex w-full items-center gap-2 p-2 rounded-md hover:bg-muted transition-colors text-left"
-              onClick={() => toast.info(t('profile.emailVerified'))}
+              onClick={handleGoToProfile}
             >
-              <Mail size={18} className="text-muted-foreground" />
-              <span>{t('profile.email')}</span>
+              <Settings size={18} className="text-muted-foreground" />
+              <span>{t('profile.settings')}</span>
             </button>
             
             {isAdmin && (

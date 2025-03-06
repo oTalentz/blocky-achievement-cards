@@ -11,6 +11,7 @@ import { Toaster } from 'sonner';
 import Index from './pages/Index';
 import Admin from './pages/Admin';
 import Auth from './pages/Auth';
+import Profile from './pages/Profile';
 import NotFound from './pages/NotFound';
 
 import './App.css';
@@ -28,6 +29,7 @@ const App: React.FC = () => {
                   <Route path="/" element={<Index />} />
                   <Route path="/admin" element={<Admin />} />
                   <Route path="/auth" element={<Auth />} />
+                  <Route path="/profile" element={<Profile />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Router>
