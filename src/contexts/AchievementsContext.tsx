@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { Achievement, achievements as initialAchievements } from '../data/achievements';
 import { toast } from "sonner";
@@ -20,6 +21,48 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [pendingChanges, setPendingChanges] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const hasDispatchedRef = useRef(false);
+  const pollingIntervalRef = useRef<number | null>(null);
+  
+  // Function to load achievements from localStorage
+  const loadAchievements = () => {
+    try {
+      const savedAchievements = localStorage.getItem('achievements');
+      if (savedAchievements) {
+        const parsedAchievements = JSON.parse(savedAchievements);
+        // Only update if there's a difference to avoid unnecessary re-renders
+        if (JSON.stringify(parsedAchievements) !== JSON.stringify(achievements)) {
+          setAchievements(parsedAchievements);
+        }
+      }
+    } catch (error) {
+      console.error("Error loading achievements in polling:", error);
+    }
+  };
+  
+  // Set up polling
+  useEffect(() => {
+    // Only start polling after initial load is complete
+    if (!isInitialLoad) {
+      // Clear any existing interval first
+      if (pollingIntervalRef.current) {
+        window.clearInterval(pollingIntervalRef.current);
+      }
+      
+      // Set new interval
+      pollingIntervalRef.current = window.setInterval(() => {
+        // Don't poll if there are pending changes to avoid overwriting user edits
+        if (!pendingChanges) {
+          loadAchievements();
+        }
+      }, 5000); // Poll every 5 seconds
+    }
+    
+    return () => {
+      if (pollingIntervalRef.current) {
+        window.clearInterval(pollingIntervalRef.current);
+      }
+    };
+  }, [isInitialLoad, pendingChanges, achievements]);
   
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
@@ -28,9 +71,7 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
           const parsedAchievements = JSON.parse(e.newValue);
           setAchievements(parsedAchievements);
           
-          if (document.hasFocus() && !isInitialLoad) {
-            toast.info("Conquistas atualizadas em tempo real!");
-          }
+          // We're no longer showing notifications at all per user request
         } catch (error) {
           console.error("Error parsing achievements from storage event:", error);
         }
@@ -39,7 +80,7 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
-  }, [isInitialLoad]);
+  }, []);
 
   useEffect(() => {
     try {
