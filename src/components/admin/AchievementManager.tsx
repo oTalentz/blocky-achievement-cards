@@ -33,8 +33,7 @@ const AchievementManager: React.FC = () => {
   const handleImageChange = (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const timestamp = new Date().getTime();
-      const imageUrl = URL.createObjectURL(file) + `?t=${timestamp}`;
+      const imageUrl = URL.createObjectURL(file);
       updateAchievementImage(id, imageUrl);
     }
   };
@@ -237,9 +236,13 @@ const AchievementManager: React.FC = () => {
                 <div className="border border-border rounded-md overflow-hidden">
                   <div className="aspect-square bg-muted relative overflow-hidden">
                     <img 
+                      key={`preview-${newAchievement.image}`}
                       src={newAchievement.image}
                       alt={newAchievement.title || "Nova conquista"}
                       className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/placeholder.svg';
+                      }}
                     />
                   </div>
                   <div className="p-3">
@@ -253,8 +256,7 @@ const AchievementManager: React.FC = () => {
                         onChange={(e) => {
                           const file = e.target.files?.[0];
                           if (file) {
-                            const timestamp = new Date().getTime();
-                            const imageUrl = URL.createObjectURL(file) + `?t=${timestamp}`;
+                            const imageUrl = URL.createObjectURL(file);
                             handleNewAchievementChange('image', imageUrl);
                           }
                         }}
@@ -308,9 +310,13 @@ const AchievementManager: React.FC = () => {
                   <td className="px-4 py-3">
                     <div className="relative w-12 h-12 bg-muted rounded-md overflow-hidden">
                       <img 
-                        src={achievement.image} 
+                        key={`table-${achievement.id}-${achievement.image}`}
+                        src={achievement.image}
                         alt={achievement.title}
                         className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = '/placeholder.svg';
+                        }}
                       />
                       <label className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 hover:opacity-100 transition-opacity cursor-pointer">
                         <ImageIcon size={16} className="text-white" />
